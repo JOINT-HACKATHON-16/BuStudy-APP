@@ -1,9 +1,8 @@
-import React from 'react';
-import TabBar from '../(tabBar)';
+import AttendanceSection from '@/components/main/attendanceSection';
+import FavoriteRoutesSection from '@/components/main/favoriteRoutesSection';
 import Header from '@/components/main/header';
 import StudyCardsSection from '@/components/main/studyCardSection';
-import FavoriteRoutesSection from '@/components/main/favoriteRoutesSection';
-import AttendanceSection from '@/components/main/attendanceSection';
+import React from 'react';
 import * as S from './style';
 
 const Main = () => {
@@ -61,7 +60,6 @@ const Main = () => {
           <AttendanceSection days={days} />
         </S.ContentWrapper>
       </S.ScrollContainer>
-      <TabBar activeTab="home" />
     </S.MainContainer>
   );
 };

@@ -1,6 +1,6 @@
-import styled from "styled-components/native";
 import { ThemedText } from "@/components/themed-text";
 import { Colors } from "@/constants/theme";
+import styled from "styled-components/native";
 
 export const TabBarContainer = styled.View`
   position: absolute;
@@ -38,7 +38,8 @@ export const TabIconWrapper = styled.View`
 `;
 
 export const TabLabel = styled(ThemedText)<{ isActive?: boolean }>`
-  color: ${({ isActive }) => (isActive ? Colors.light.gray3 : Colors.light.gray8)};
+  color: ${({ isActive }) =>
+    isActive ? Colors.light.gray3 : Colors.light.gray8};
 `;
 
 export const UnderBar = styled.View`
@@ -50,4 +51,23 @@ export const UnderBar = styled.View`
   height: 5px;
   background-color: ${Colors.light.gray8};
   border-radius: 100px;
+`;
+
+// Placeholder Styles
+export const PlaceholderContainer = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: #f1f1f1;
+  padding: 32px;
+`;
+
+export const PlaceholderText = styled(ThemedText)`
+  color: ${Colors.light.gray7};
+  margin-bottom: 8px;
+`;
+
+export const PlaceholderSubText = styled(ThemedText)`
+  color: ${Colors.light.gray8};
+  text-align: center;
 `;

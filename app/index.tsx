@@ -1,12 +1,12 @@
+import StyledBtn from "@/components/common/StyledBtn";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Colors } from "@/constants/theme";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { useRouter } from "expo-router";
 import React from "react";
 import { Pressable, View } from "react-native";
-import { ThemedView } from "@/components/themed-view";
-import { ThemedText } from "@/components/themed-text";
-import StyledBtn from "@/components/common/StyledBtn";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useThemeColor } from "@/hooks/use-theme-color";
-import { Colors } from "@/constants/theme";
-import { useRouter } from "expo-router";
 
 const Index = () => {
   const backgroundColor = useThemeColor(
@@ -37,7 +37,7 @@ const Index = () => {
         style={{ width: "100%" }}
         onPress={() => {router.push("/(SignUp)")}}
       />
-      <Pressable onPress={() => {router.push("/(Main)")}}>
+      <Pressable onPress={() => {router.push("/(tabBar)/TabBarLayout")}}>
       <ThemedText style={{color:grayColor}}>이미 계정이 있으신가요? 로그인하기</ThemedText>
       </Pressable>
       </View>
