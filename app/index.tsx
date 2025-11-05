@@ -15,7 +15,7 @@ const Index = () => {
   );
 
   const grayColor = useThemeColor(
-    { light: Colors.light.gray3, dark: Colors.dark.gray3 },
+    { light: Colors.light.gray5, dark: Colors.dark.gray5 },
     "text"
   );
 
@@ -30,15 +30,15 @@ const Index = () => {
         <ThemedText type="Subtitle1">내 자투리 시간 투자</ThemedText>
         <View style={{ width: 100, height: 100, backgroundColor: "gray" }} />
       </View>
-      <View style={{ position: "absolute", bottom: 40, width: "90%", alignItems:'center', gap:12 }}>
+      <View style={{ position: "absolute", bottom: 40, width: "90%", alignItems:'center', gap:24 }}>
       <StyledBtn
         label="시작하기"
         isActive={true}
         style={{ width: "100%" }}
         onPress={() => {router.push("/(SignUp)")}}
       />
-      <Pressable onPress={() => {}}>
-      <ThemedText >이미 계정이 있으신가요? 로그인하기</ThemedText>
+      <Pressable onPress={() => {router.push("/(Main)")}}>
+      <ThemedText style={{color:grayColor}}>이미 계정이 있으신가요? 로그인하기</ThemedText>
       </Pressable>
       </View>
       
