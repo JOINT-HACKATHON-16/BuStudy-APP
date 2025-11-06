@@ -5,7 +5,7 @@ import { Colors } from "@/constants/theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Pressable, View, Image } from "react-native";
+import { Image, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Index = () => {
@@ -38,7 +38,7 @@ const Index = () => {
         style={{width:'100%'}}
         onPress={() => {router.push("/(SignUp)")}}
       />
-      <Pressable onPress={() => {router.push("/(tabBar)/TabBarLayout")}}>
+      <Pressable onPress={() => {router.push("/(Login)")}}>
       <View style={{flexDirection:'row', gap:4}}>
        <ThemedText style={{color:grayColor}} type="Body4">이미 계정이 있으신가요?</ThemedText>
       <ThemedText style={{color:grayColor, textDecorationLine:'underline'}} type="Body3">로그인 하기</ThemedText>

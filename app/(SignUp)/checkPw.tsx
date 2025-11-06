@@ -3,11 +3,12 @@ import { ThemedView } from "@/components/themed-view";
 import CustomView from "@/components/common/CustomView";
 import { useRouter } from "expo-router";
 import { ThemedText } from "@/components/themed-text";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 import StyledBtn from "@/components/common/StyledBtn";
 import StyledInput from "@/components/common/StyledInput";
 import { useRegisterStore } from "@/store/userInfo/useLoginStore";
 import { Colors } from "@/constants/theme";
+import { useSignUp } from "@/hooks/auth/useSignUp";
 import * as S from "./style";
 
 const SignUp = () => {
@@ -18,13 +19,33 @@ const SignUp = () => {
     userId,
     password,
   } = useRegisterStore((state) => state);
-  const setPasswordCheck = useRegisterStore(
-    (state) => state.action.setPasswordCheck
-  );
+  
+  const { mutate: signUp, isPending } = useSignUp();
 
   const changePw = (text: string) => {
     setPw(text);
   };
+
+  const handleSignUp = () => {
+    signUp(
+      {
+        loginId: userId,
+        passwordCheck: pw,
+        password: password,
+        name: registerName,
+      },
+      {
+        onSuccess: () => {
+          Alert.alert("가입 완료", "회원가입이 완료되었습니다!");
+          router.push("/(Login)");
+        },
+        onError: (error) => {
+          Alert.alert("가입 실패", "회원가입에 실패했습니다. 다시 시도해주세요.");
+        }
+      }
+    );
+  };
+
   return (
     <CustomView
       onPressLeftIcon={() => {
@@ -82,12 +103,9 @@ const SignUp = () => {
         </View>
 
         <StyledBtn
-          label="다음"
-          onPress={() => {
-            router.push("/(Main)");
-            setPasswordCheck(pw);
-          }}
-          isActive={pw.length >= 8 && pw === password}
+          label={isPending ? "가입 중..." : "가입 완료"}
+          onPress={handleSignUp}
+          isActive={pw.length >= 8 && pw === password && !isPending}
           style={{
             position: "absolute",
             bottom: 0,

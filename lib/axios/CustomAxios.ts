@@ -5,7 +5,7 @@ interface UgaAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-export const UgaAxios = axios.create({
+export const CustomAxios = axios.create({
   baseURL: process.env.EXPO_PUBLIC_SERVER_URL,
   headers: {
     Accept: "application/json, text/plain, */*, multipart/form-data",
@@ -28,9 +28,9 @@ const addRefreshSubscriber = (callback: (token: string) => void) => {
   refreshSubscribers.push(callback);
 };
 
-UgaAxios.interceptors.request.use(
+CustomAxios.interceptors.request.use(
   async (config) => {
-    let token = await AsyncStorage.getItem("ACCESS_TOKEN"); // 나중에 const로 변경
+    let token = await AsyncStorage.getItem("ACCESS_TOKEN");
 
     // 개발용 임시 토큰
     if (!token && __DEV__) {
@@ -55,22 +55,29 @@ UgaAxios.interceptors.request.use(
   }
 );
 
-UgaAxios.interceptors.response.use(
+CustomAxios.interceptors.response.use(
   (response) => {
     return response;
   },
   async (error: AxiosError) => {
     const originalRequest = error.config as UgaAxiosRequestConfig;
 
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
+    // Content-Type 설정
     if (originalRequest.data instanceof FormData) {
       originalRequest.headers["Content-Type"] = "multipart/form-data";
     } else {
       originalRequest.headers["Content-Type"] = "application/json";
     }
-    if (originalRequest && !originalRequest._retry) {
+
+    // 401 에러이고 재시도하지 않은 요청인 경우
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      let refreshToken = await AsyncStorage.getItem("REFRESH_TOKEN"); //나중에 const로 변경
+      let refreshToken = await AsyncStorage.getItem("REFRESH_TOKEN");
 
       // 개발용 임시 리프레시 토큰
       if (!refreshToken && __DEV__) {
@@ -85,29 +92,32 @@ UgaAxios.interceptors.response.use(
           isRefreshing = true;
 
           try {
-            const response = await axios.post(
-              `${process.env.EXPO_PUBLIC_SERVER_URL}/auth/refresh`,
+            const response = await axios.put(
+              `${process.env.EXPO_PUBLIC_SERVER_URL}/auth/re-issue`,
+              null,
               {
-                token: refreshToken,
+                headers: {
+                  "X-Refresh-Token": refreshToken,
+                },
               }
             );
 
             const newAccessToken = response.data.data.accessToken;
             const newRefreshToken = response.data.data.refreshToken;
 
-            AsyncStorage.setItem("ACCESS_TOKEN", newAccessToken);
-            AsyncStorage.setItem("REFRESH_TOKEN", newRefreshToken);
+            await AsyncStorage.setItem("ACCESS_TOKEN", newAccessToken);
+            await AsyncStorage.setItem("REFRESH_TOKEN", newRefreshToken);
 
             // 대기 중인 요청들을 처리
             onRefreshed(newAccessToken);
 
             // 재발급 완료 후 새로운 토큰으로 요청 다시 보내기
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-            return UgaAxios(originalRequest);
+            return CustomAxios(originalRequest);
           } catch (refreshError) {
             // 토큰 재발급 실패 시 처리
-            AsyncStorage.removeItem("ACCESS_TOKEN");
-            AsyncStorage.removeItem("REFRESH_TOKEN");
+            await AsyncStorage.removeItem("ACCESS_TOKEN");
+            await AsyncStorage.removeItem("REFRESH_TOKEN");
             return Promise.reject(refreshError);
           } finally {
             isRefreshing = false;
@@ -118,7 +128,7 @@ UgaAxios.interceptors.response.use(
         return new Promise((resolve) => {
           addRefreshSubscriber((newToken: string) => {
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            resolve(UgaAxios(originalRequest));
+            resolve(CustomAxios(originalRequest));
           });
         });
       } else {
@@ -131,4 +141,4 @@ UgaAxios.interceptors.response.use(
   }
 );
 
-export default UgaAxios;
+export default CustomAxios;

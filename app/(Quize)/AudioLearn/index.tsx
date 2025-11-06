@@ -43,7 +43,6 @@ export default function AudioLearn() {
 
       // 사용 가능한 음성 확인
       const voices = await Speech.getAvailableVoicesAsync();
-      console.log('Available voices:', voices);
 
       // 텍스트를 음성으로 변환
       Speech.speak(audioContent.description, {
