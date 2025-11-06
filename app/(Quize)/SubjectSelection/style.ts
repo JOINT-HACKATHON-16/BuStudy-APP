@@ -68,6 +68,13 @@ export const RegisterText = styled.Text`
   color: ${Colors.light.gray3};
 `;
 
+export const LoadingContainer = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 0;
+`;
+
 export const BottomContainer = styled.View`
   padding: 12px 32px;
 `;

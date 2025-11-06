@@ -1,6 +1,8 @@
 import StyledBtn from '@/components/common/StyledBtn';
+import getSub, { Subject } from '@/hooks/learn/useGetSub';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import * as S from './style';
@@ -20,14 +22,28 @@ const BackIcon: React.FC = () => (
 const SubjectSelection: React.FC = () => {
   const router = useRouter();
   const [selectedSubject, setSelectedSubject] = useState('');
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const subjects = [
-    { id: '1', name: '영어' },
-    { id: '2', name: '수학' },
-    { id: '3', name: '과학' },
-  ];
+  // 컴포넌트 마운트 시 과목 목록 가져오기
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getSub();
+        setSubjects(response.subjects);
+      } catch (error) {
+        console.error('Failed to fetch subjects:', error);
+        setSubjects([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleSubjectPress = (subjectName: string) => {
+    fetchSubjects();
+  }, []);
+
+  const handleSubjectPress = (subjectId: number, subjectName: string) => {
     setSelectedSubject(subjectName);
   };
 
@@ -81,24 +97,30 @@ const SubjectSelection: React.FC = () => {
         <S.Content>
           <S.Title>오늘 공부할 과목은 무엇인가요?</S.Title>
 
-          <S.SubjectList>
-            {subjects.map((subject) => (
-              <S.SubjectButton
-                key={subject.id}
-                onPress={() => handleSubjectPress(subject.name)}
-                selected={selectedSubject === subject.name}
-                activeOpacity={0.7}
-              >
-                <S.SubjectText selected={selectedSubject === subject.name}>
-                  {subject.name}
-                </S.SubjectText>
-              </S.SubjectButton>
-            ))}
-            
-            <S.RegisterButton onPress={handleRegisterSubject} activeOpacity={0.7}>
-              <S.RegisterText>과목 등록하기</S.RegisterText>
-            </S.RegisterButton>
-          </S.SubjectList>
+          {isLoading ? (
+            <S.LoadingContainer>
+              <ActivityIndicator size="large" color="#4486ff" />
+            </S.LoadingContainer>
+          ) : (
+            <S.SubjectList>
+              {subjects.map((subject) => (
+                <S.SubjectButton
+                  key={subject.subjectId}
+                  onPress={() => handleSubjectPress(subject.subjectId, subject.subject)}
+                  selected={selectedSubject === subject.subject}
+                  activeOpacity={0.7}
+                >
+                  <S.SubjectText selected={selectedSubject === subject.subject}>
+                    {subject.subject}
+                  </S.SubjectText>
+                </S.SubjectButton>
+              ))}
+              
+              <S.RegisterButton onPress={handleRegisterSubject} activeOpacity={0.7}>
+                <S.RegisterText>과목 등록하기</S.RegisterText>
+              </S.RegisterButton>
+            </S.SubjectList>
+          )}
         </S.Content>
 
         <S.BottomContainer>

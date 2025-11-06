@@ -33,8 +33,8 @@ const getBusStops = async ({
 
   const response = await CustomAxios.get<BusApiResponse>("/bus", {
     params: {
-      lat: lat,
-      lon: lon,
+      lat: 36.3,
+      lon: 127.3,
     },
   });
 

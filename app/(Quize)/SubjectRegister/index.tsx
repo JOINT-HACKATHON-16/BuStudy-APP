@@ -1,9 +1,10 @@
 import { Colors } from '@/constants/theme';
+import { usePostSubject } from '@/hooks/learn/useRegisterSub';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { Alert } from 'react-native';
+import { ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 import * as S from './style';
@@ -50,6 +51,32 @@ export default function SubjectRegister() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
 
+  // usePostSubject 훅 사용
+  const postSubjectMutation = usePostSubject({
+    onSuccess: (data) => {
+      console.log('과목 등록 성공:', data);
+      Alert.alert('성공', '과목이 등록되었습니다.', [
+        {
+          text: '확인',
+          onPress: () => router.push('/(Quize)/SubjectDetail'),
+        },
+      ]);
+    },
+    onError: (error: any) => {
+      console.error('과목 등록 실패:', error);
+      
+      // 413 에러 (Payload Too Large) 처리
+      if (error.response?.status === 413) {
+        Alert.alert(
+          '파일 크기 초과',
+          '이미지 파일이 너무 큽니다. 더 작은 이미지를 선택해주세요.'
+        );
+      } else {
+        Alert.alert('오류', '과목 등록에 실패했습니다. 다시 시도해주세요.');
+      }
+    },
+  });
+
   const handleBack = () => {
     router.back();
   };
@@ -58,7 +85,10 @@ export default function SubjectRegister() {
   const handleTakePicture = async () => {
     if (cameraRef.current) {
       try {
-        const photo = await cameraRef.current.takePictureAsync();
+        const photo = await cameraRef.current.takePictureAsync({
+          quality: 0.3, // 이미지 품질을 더 낮춤 (30%)
+          exif: false, // EXIF 데이터 제거
+        });
         if (photo) {
           setSubjectImage(photo.uri);
         }
@@ -84,7 +114,8 @@ export default function SubjectRegister() {
         mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 1,
+        quality: 0.1,
+        exif: false, // EXIF 데이터 제거
       });
 
       if (!result.canceled && result.assets[0]) {
@@ -96,14 +127,16 @@ export default function SubjectRegister() {
     }
   };
 
-  const handleNextButtonClick = () => {
+  const handleNextButtonClick = async () => {
     if (!subjectImage) {
       Alert.alert('사진을 선택해주세요', '과목 이미지를 촬영하거나 갤러리에서 선택해주세요.');
       return;
     }
-    
-    // SubjectDetail 페이지로 이동
-    router.push('/(Quize)/SubjectDetail');
+
+    // API 호출 - 이미지 URI만 전달하면 됩니다
+    postSubjectMutation.mutate({
+      imageUri: subjectImage,
+    });
   };
 
   // 카메라 권한 요청
@@ -162,17 +195,24 @@ export default function SubjectRegister() {
 
         <S.BottomSheet>
           <S.ImageActionContainer>
-            <S.CameraButton onPress={handleCameraButtonClick}>
+            <S.CameraButton onPress={handleCameraButtonClick} disabled={postSubjectMutation.isPending}>
               <S.CameraIconBox>
                 <CameraIcon />
               </S.CameraIconBox>
             </S.CameraButton>
-            <S.GalleryButton onPress={handleTakePicture}>
+            <S.GalleryButton onPress={handleTakePicture} disabled={postSubjectMutation.isPending}>
               <GalleryCircleIcon />
             </S.GalleryButton>
-            <S.NextButton onPress={handleNextButtonClick} disabled={!subjectImage}>
-              <S.NextIconBox disabled={!subjectImage}>
-                <NextIcon />
+            <S.NextButton 
+              onPress={handleNextButtonClick} 
+              disabled={!subjectImage || postSubjectMutation.isPending}
+            >
+              <S.NextIconBox disabled={!subjectImage || postSubjectMutation.isPending}>
+                {postSubjectMutation.isPending ? (
+                  <ActivityIndicator size="small" color={Colors.light.white} />
+                ) : (
+                  <NextIcon />
+                )}
               </S.NextIconBox>
             </S.NextButton>
           </S.ImageActionContainer>

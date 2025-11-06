@@ -14,7 +14,6 @@ interface BusTravelTimePayload {
 interface BusTravelTimeResponse {
   // 예시: 예상 시간 (분), 도착지 정보 등
   estimatedTimeMinutes: number;
-  destination: string;
 }
 
 // 3. API 호출 함수가 정의된 타입을 사용하도록 수정합니다.

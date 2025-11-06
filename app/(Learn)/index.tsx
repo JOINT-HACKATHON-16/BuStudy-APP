@@ -2,6 +2,7 @@ import StyledBtn from '@/components/common/StyledBtn';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useGetBusStops } from '@/hooks/bus/useGetBusStop';
+import { usePostBusTravelTime } from '@/hooks/bus/usePostBus';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -86,7 +87,29 @@ const Learn: React.FC = () => {
   const [isArrivalFocused, setIsArrivalFocused] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [shouldFetchBusStops, setShouldFetchBusStops] = useState(false);
+  const [estimatedTime, setEstimatedTime] = useState<number | null>(null); // 예상 소요 시간 저장
   const router = useRouter();
+
+  // 버스 경로 시간 API 호출 훅
+  const postBusTravelTimeMutation = usePostBusTravelTime({
+    onSuccess: (data) => {
+      console.log('버스 경로 시간 조회 성공:', data);
+      setEstimatedTime(data.estimatedTimeMinutes); // 예상 시간 저장
+    },
+    onError: (error) => {
+      console.error('버스 경로 시간 조회 실패:', error);
+      Alert.alert('오류', '경로 시간을 조회할 수 없습니다.');
+    },
+  });
+
+  // 하드코딩된 값으로 API 테스트
+  const testBusApi = () => {
+    postBusTravelTimeMutation.mutate({
+      sx: 36.38,
+      sy: 127.36,
+      streetAddress: '대전광역시 유성구 가정북로 68',
+    });
+  };
 
   // 위치 권한 요청 및 현재 위치 가져오기
   useEffect(() => {
@@ -133,8 +156,17 @@ const Learn: React.FC = () => {
       }))
     : [];
 
+  // 도착 정류장 필터링용 더미 데이터 (대덕대학교)
+  const arrivalBusStations: BusStation[] = [
+    {
+      id: 'dummy-1',
+      name: '대덕대학교',
+      time: '5분 후',
+    },
+  ];
+
   // 검색어로 버스 정류장 필터링
-  const filteredBusStations = busStations.filter(station =>
+  const filteredBusStations = arrivalBusStations.filter(station =>
     station.name.toLowerCase().includes(arrival.toLowerCase())
   );
 
@@ -273,17 +305,22 @@ const Learn: React.FC = () => {
         >
           {departure !== '' && arrival !== '' && !isArrivalFocused ? (
             <View style={{ flex: 1, alignItems:'flex-end'}}>
-              <ThemedText style={{color: Colors.light.primary60}}>예상 소요시간 : 35분 {}</ThemedText>
+              <ThemedText style={{color: Colors.light.primary60}}>
+                예상 소요시간 : {estimatedTime !== null ? `${estimatedTime}분` : '계산 중...'}
+              </ThemedText>
               <StyledBtn
                 label="학습 시작"
                 onPress={() => {
+                  // API 호출 테스트
+                  testBusApi();
+                  // 학습 시작 페이지로 이동
                   router.push('/(Quize)/SubjectSelection');
                 }}
                 style={{ width: '100%', height: 48, position: 'absolute', bottom: -360 }}
                 isActive={true}
               />
             </View>
-          ) : isArrivalFocused ? (
+          ) : isArrivalFocused && arrival !== '' && filteredBusStations.length > 0 ? (
             <View>
               <S.SectionTitle>버스 정류장</S.SectionTitle>
               <S.BusStationList>
