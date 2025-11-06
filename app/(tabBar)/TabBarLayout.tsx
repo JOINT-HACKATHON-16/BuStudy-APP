@@ -4,6 +4,7 @@ import Learn from '../(Learn)';
 import Main from '../(Main)';
 import TabBar from './index';
 import * as S from './style';
+import Storage from '../(Storage)';
 
 export default function TabBarLayout() {
   // 1. 현재 활성화된 탭 상태를 저장
@@ -20,10 +21,7 @@ export default function TabBarLayout() {
     switch (activeTab) {
       case 'storage':
         return (
-          <S.PlaceholderContainer>
-            <S.PlaceholderText>보관함 화면</S.PlaceholderText>
-            <S.PlaceholderSubText>StorageScreen 컴포넌트를 만들어주세요</S.PlaceholderSubText>
-          </S.PlaceholderContainer>
+          <Storage />
         );
 
       case 'home':

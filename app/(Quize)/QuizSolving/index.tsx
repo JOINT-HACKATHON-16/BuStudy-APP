@@ -1,5 +1,5 @@
 import StyledBtn from '@/components/common/StyledBtn';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -29,13 +29,14 @@ interface Question {
 
 export default function QuizSolving() {
   const router = useRouter();
+  const { subject } = useLocalSearchParams<{ subject: string }>();
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
 
-  // Mock data
+  // Mock data - 전달받은 과목 사용
   const currentQuestion: Question = {
     id: '1',
-    subject: '과학',
+    subject: subject || '과학', // 전달받은 과목 또는 기본값
     question: '한국 통일 이후 신라에서 무열왕계 직계 자손이 왕권을 강화하기 위해 강조한 정치 이념은 무엇인가요?',
     answers: [
       { id: '1', text: '유교' },
@@ -98,7 +99,7 @@ export default function QuizSolving() {
           <S.BackButton onPress={handleBack}>
             <BackIcon />
           </S.BackButton>
-          <S.SubjectText>{currentQuestion.subject}</S.SubjectText>
+          <S.SubjectText>{subject}</S.SubjectText>
         </S.Header>
 
         <S.Content>

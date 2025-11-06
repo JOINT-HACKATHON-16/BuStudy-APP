@@ -1,4 +1,5 @@
 import StyledBtn from '@/components/common/StyledBtn';
+import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -6,7 +7,6 @@ import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 import * as S from './style';
-import { ThemedText } from '@/components/themed-text';
 
 interface RouteRecord {
   id: string;
@@ -109,7 +109,32 @@ const Learn: React.FC = () => {
       name: '경주월드, 캘리포니아비치',
       time: '4분',
     },
+    {
+      id: '2',
+      name: '라한 셀렉트, 테디베어박물관',
+      time: '6분',
+    },
+    {
+      id: '3',
+      name: '수상공연장입구',
+      time: '8분',
+    },
+    {
+      id: '4',
+      name: '켄싱턴리조트',
+      time: '10분',
+    },
+    {
+      id: '5',
+      name: '환화콘도',
+      time: '12분',
+    },
   ];
+
+  // 검색어로 버스 정류장 필터링
+  const filteredBusStations = busStations.filter(station =>
+    station.name.toLowerCase().includes(arrival.toLowerCase())
+  );
 
   const handleSelectStation = (station: StationOption) => {
     setDeparture(station.name);
@@ -172,7 +197,7 @@ const Learn: React.FC = () => {
                 <S.InputLabel>출발</S.InputLabel>
                 <S.DropdownButton 
                   onPress={() => setIsDropdownOpen(!isDropdownOpen)}
-                  activeOpacity={0.7}
+                  activeOpacity={1}
                 >
                   <S.DropdownText selected={!!departure}>
                     {departure || '출발 정류장을 선택해주세요'}
@@ -206,6 +231,12 @@ const Learn: React.FC = () => {
                   value={arrival}
                   onChangeText={setArrival}
                   onFocus={() => setIsArrivalFocused(true)}
+                  onBlur={() => {
+                    // 텍스트가 비어있을 때만 포커스 해제
+                    if (arrival === '') {
+                      setIsArrivalFocused(false);
+                    }
+                  }}
                 />
               </S.InputField>
             </S.InputWrapper>
@@ -220,9 +251,9 @@ const Learn: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 32, paddingBottom: 120 }}
         >
-          {departure !== '' && arrival !== '' ? (
+          {departure !== '' && arrival !== '' && !isArrivalFocused ? (
             <View style={{ flex: 1, alignItems:'flex-end'}}>
-              <ThemedText style={{color: Colors.light.primary60}}>예상 소요시간 : {}</ThemedText>
+              <ThemedText style={{color: Colors.light.primary60}}>예상 소요시간 : 35분 {}</ThemedText>
               <StyledBtn
                 label="학습 시작"
                 onPress={() => {
@@ -232,7 +263,31 @@ const Learn: React.FC = () => {
                 isActive={true}
               />
             </View>
-          ) : !isArrivalFocused ? (
+          ) : isArrivalFocused ? (
+            <View>
+              <S.SectionTitle>버스 정류장</S.SectionTitle>
+              <S.BusStationList>
+                {filteredBusStations.map((station) => (
+                  <S.BusStationCard 
+                    key={station.id}
+                    onPress={() => {
+                      setArrival(station.name);
+                      setIsArrivalFocused(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <S.BusStationName>{station.name}</S.BusStationName>
+                    <S.BusTimeInfo>
+                      <S.ClockIcon>
+                        <ClockIcon />
+                      </S.ClockIcon>
+                      <S.BusTime>{station.time}</S.BusTime>
+                    </S.BusTimeInfo>
+                  </S.BusStationCard>
+                ))}
+              </S.BusStationList>
+            </View>
+          ) : (
             <View>
               <S.SectionTitle>최근 노선</S.SectionTitle>
               <S.RouteList>
@@ -260,31 +315,6 @@ const Learn: React.FC = () => {
                 </S.RouteCard>
               ))}
             </S.RouteList>
-            </View>
-            
-          ) : (
-            <View>
-              <S.SectionTitle>버스 정류장</S.SectionTitle>
-              <S.BusStationList>
-                {busStations.map((station) => (
-                  <S.BusStationCard 
-                    key={station.id}
-                    onPress={() => {
-                      setArrival(station.name);
-                      setIsArrivalFocused(false);
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <S.BusStationName>{station.name}</S.BusStationName>
-                    <S.BusTimeInfo>
-                      <S.ClockIcon>
-                        <ClockIcon />
-                      </S.ClockIcon>
-                      <S.BusTime>{station.time}</S.BusTime>
-                    </S.BusTimeInfo>
-                  </S.BusStationCard>
-                ))}
-              </S.BusStationList>
             </View>
           )}
 

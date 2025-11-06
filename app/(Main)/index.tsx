@@ -21,7 +21,7 @@ const Main = () => {
     },
     {
       id: 2,
-      backgroundColor: '#9eb9ea',
+      backgroundColor: '#5087ee',
       from: '라한 셀렉트, 테디베어박물관',
       to: '경주월드, 캘리포니아비치',
       subject: '수학',

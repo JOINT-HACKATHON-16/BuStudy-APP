@@ -44,7 +44,7 @@ export default function SubjectDetail() {
           <ThemedText type="Subtitle1">과목 이름을 입력해주세요</ThemedText>
           <S.InputContainer>
             <View style={{ gap: 8 }}>
-              <ThemedText style={{ marginLeft: 4 }}>과목 이름</ThemedText>
+              <ThemedText>과목 이름</ThemedText>
               <S.Input editable={false} pointerEvents="none" >
                 수학
               </S.Input>

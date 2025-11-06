@@ -1,6 +1,7 @@
 import React from 'react';
 import { Circle, Path, Svg } from 'react-native-svg';
 import * as S from './style';
+import { Colors } from '@/constants/theme';
 
 interface RouteCardProps {
   from: string;
@@ -17,7 +18,7 @@ const RouteCard: React.FC<RouteCardProps> = ({ from, to, time }) => {
           <Svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <Path
               d="M8 3L8 13M8 3L12 7M8 3L4 7"
-              stroke="#494949"
+              stroke={Colors.light.primary60}
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"

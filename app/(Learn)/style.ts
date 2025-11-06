@@ -104,13 +104,15 @@ export const DropdownList = styled.View`
   left: 0;
   right: 0;
   background-color: #f6f6f6;
-  border-left: 1px solid #e6e6e6;
-  border-right: 1px solid #e6e6e6;
-  border-bottom: 1px solid #e6e6e6;
+  border-left:1px solid black;
   border-radius: 8px;
   padding: 12px 16px;
-  gap: 8px;
+  gap: 12px;
   z-index: 100;
+  border-left-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  border-color: ${Colors.light.gray9};
 `;
 
 export const DropdownPlaceholder = styled.Text`

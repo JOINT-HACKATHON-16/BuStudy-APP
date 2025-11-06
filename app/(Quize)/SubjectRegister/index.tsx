@@ -1,8 +1,8 @@
 import { Colors } from '@/constants/theme';
-import { useCameraPermissions } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
@@ -48,37 +48,24 @@ export default function SubjectRegister() {
   const router = useRouter();
   const [subjectImage, setSubjectImage] = useState<string | null>(null);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const cameraRef = useRef<CameraView>(null);
 
   const handleBack = () => {
     router.back();
   };
 
-  // 갤러리 버튼 클릭 -> 카메라로 사진 찍기
-  const handleGalleryButtonClick = async () => {
-    try {
-      // 카메라 권한 요청
-      if (!cameraPermission?.granted) {
-        const { granted } = await requestCameraPermission();
-        if (!granted) {
-          Alert.alert('권한 필요', '카메라 권한이 필요합니다.');
-          return;
+  // 카메라로 사진 찍기
+  const handleTakePicture = async () => {
+    if (cameraRef.current) {
+      try {
+        const photo = await cameraRef.current.takePictureAsync();
+        if (photo) {
+          setSubjectImage(photo.uri);
         }
+      } catch (error) {
+        console.error('Take picture error:', error);
+        Alert.alert('오류', '사진을 찍을 수 없습니다.');
       }
-
-      // 카메라로 사진 찍기
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        setSubjectImage(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error('Camera error:', error);
-      Alert.alert('오류', '카메라를 실행할 수 없습니다.');
     }
   };
 
@@ -119,6 +106,38 @@ export default function SubjectRegister() {
     router.push('/(Quize)/SubjectDetail');
   };
 
+  // 카메라 권한 요청
+  React.useEffect(() => {
+    (async () => {
+      const { status } = await requestCameraPermission();
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '카메라 권한이 필요합니다.');
+      }
+    })();
+  }, [requestCameraPermission]);
+
+  if (!cameraPermission) {
+    return null;
+  }
+
+  if (!cameraPermission.granted) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }} edges={['top']}>
+        <S.Container>
+          <S.Header>
+            <S.BackButton onPress={handleBack}>
+              <BackIcon />
+            </S.BackButton>
+            <S.HeaderTitle>과목 등록하기</S.HeaderTitle>
+          </S.Header>
+          <S.PlaceholderBox>
+            <S.HeaderTitle>카메라 권한이 필요합니다</S.HeaderTitle>
+          </S.PlaceholderBox>
+        </S.Container>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }} edges={['top']}>
       <S.Container>
@@ -133,7 +152,11 @@ export default function SubjectRegister() {
           {subjectImage ? (
             <S.PreviewImage source={{ uri: subjectImage }} />
           ) : (
-            <S.PlaceholderBox />
+            <CameraView
+              ref={cameraRef}
+              style={{ flex: 1 }}
+              facing="back"
+            />
           )}
         </S.ImagePreviewSection>
 
@@ -144,7 +167,7 @@ export default function SubjectRegister() {
                 <CameraIcon />
               </S.CameraIconBox>
             </S.CameraButton>
-            <S.GalleryButton onPress={handleGalleryButtonClick}>
+            <S.GalleryButton onPress={handleTakePicture}>
               <GalleryCircleIcon />
             </S.GalleryButton>
             <S.NextButton onPress={handleNextButtonClick} disabled={!subjectImage}>

@@ -1,9 +1,9 @@
+import StyledBtn from '@/components/common/StyledBtn';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import * as S from './style';
-import StyledBtn from '@/components/common/StyledBtn';
 
 const BackIcon: React.FC = () => (
   <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -33,7 +33,10 @@ const SubjectSelection: React.FC = () => {
 
   const handleNext = () => {
     if (selectedSubject) {
-      router.push('/(Quize)/QuizSolving')
+      router.push({
+        pathname: '/(Quize)/QuizSolving',
+        params: { subject: selectedSubject }
+      });
       console.log('Selected subject:', selectedSubject);
     }
   };

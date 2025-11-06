@@ -37,7 +37,7 @@ export const SubjectList = styled.View`
 
 export const SubjectButton = styled.TouchableOpacity<{ selected?: boolean }>`
   background-color: ${(props) =>
-    props.selected ? Colors.light.primary30 : Colors.light.white};
+    props.selected ? Colors.light.primary60 : Colors.light.white};
   border: 1px solid
     ${(props) => (props.selected ? Colors.light.primary30 : "#e6e6e6")};
   border-radius: 8px;

@@ -48,9 +48,9 @@ export const AnswerList = styled.View`
 
 export const AnswerButton = styled.TouchableOpacity<{ answerState?: string }>`
   background-color: ${(props) => {
-    if (props.answerState === "correct") return "#699dff";
+    if (props.answerState === "correct") return Colors.light.primary60;
     if (props.answerState === "incorrect") return "#f15c62";
-    if (props.answerState === "selected") return Colors.light.primary30;
+    if (props.answerState === "selected") return Colors.light.primary60;
     return "#ffffff";
   }};
   border: 1px solid

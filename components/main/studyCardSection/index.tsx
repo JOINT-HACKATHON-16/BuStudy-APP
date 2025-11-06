@@ -57,7 +57,7 @@ const StudyCardsSection= ({ studyCards } : StudyCardsSectionProps) => {
 
         const opacity = scrollX.interpolate({
           inputRange,
-          outputRange: [0.7, 1, 0.7],
+          outputRange: [0.4, 1, 0.4],
           extrapolate: 'clamp',
         });
 
