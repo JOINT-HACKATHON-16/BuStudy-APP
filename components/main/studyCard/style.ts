@@ -7,7 +7,16 @@ export const StudyCard = styled.View<{ backgroundColor?: string }>`
   padding: 24px 20px;
   margin-right: 12px;
   overflow: hidden;
+  position: relative;
 `;
+
+export const BusImageWrapper = styled.Image`
+  position: absolute;
+  right: -60px;
+  bottom: 30px;
+  width: 235px;
+  height: 235px;
+`
 
 export const RouteInfo = styled.View`
   margin-bottom: 105px;
@@ -35,7 +44,7 @@ export const ArrowIcon = styled.View`
 export const BusImage = styled.Image`
   position: absolute;
   right: -60px;
-  bottom: 30px;
+  bottom: 60px;
   width: 235px;
   height: 235px;
 `;
