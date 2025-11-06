@@ -5,7 +5,7 @@ export type ThemedTextProps = TextProps & {
   style?:any,
   lightColor?: string;
   darkColor?: string;
-  type?: 'H1' | 'Subtitle1' | 'Subtitle2' | 'Subtitle3' | 'Subtitle4' | 'Body1' | 'Body2' | 'Body3' | 'Body4' | 'Caption';
+  type?: 'H1' | 'Subtitle1' | 'Subtitle2' | 'Subtitle3' | 'Subtitle4' | 'Body1' | 'Body2' | 'Body3' | 'Body4' | 'Caption' | 'Heavy';
 };
 
 export function ThemedText({
@@ -32,6 +32,7 @@ export function ThemedText({
         type === 'Body3' ? styles.Body3 : undefined,
         type === 'Body4' ? styles.Body4 : undefined,
         type === 'Caption' ? styles.Caption : undefined,
+        type === 'Heavy' ? styles.Heavy : undefined,
         style,
       ]}
       {...rest}
@@ -41,6 +42,10 @@ export function ThemedText({
 
 const styles = StyleSheet.create({
     // Heading
+    Heavy: {
+      fontSize:36,
+      fontFamily:'Suit-Heavy',
+    },
     H1: {
       fontSize: 20,
       fontFamily: 'Suit-SemiBold',

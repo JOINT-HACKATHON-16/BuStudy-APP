@@ -24,11 +24,11 @@ const Index = () => {
     <SafeAreaView style={{ flex: 1  , backgroundColor: backgroundColor, paddingHorizontal:32, }}>
     <ThemedView
       type="Bright"
-      style={{ flex: 1, justifyContent: "flex-start", alignItems: "center" }}
+      style={{ flex: 1, justifyContent: "flex-start", alignItems: "flex-start" }}
     >
-      <View style={{ justifyContent: "center", alignItems: "center", gap: 20, marginTop:140 }}>
-        <ThemedText type="Subtitle1">내 자투리 시간 투자</ThemedText>
-        <View style={{ width: 100, height: 100, backgroundColor: "gray" }} />
+      <View style={{ justifyContent: "center", alignItems: "flex-start", gap: 8, marginTop:140 }}>
+        <ThemedText type="Subtitle4" style={{color: Colors.light.primary50}}>{"버스 안에서 배우는 새로운 학습 경험"}</ThemedText>
+        <ThemedText type="Heavy" style={{color: Colors.light.primary60}}>BuStudy</ThemedText>
       </View>
       <Image source={{ uri : 'https://cdn.discordapp.com/attachments/1435459558939037908/1435788809420673034/kpass_bus.png?ex=690d3e07&is=690bec87&hm=0d89ef63a4b3f31f0d1d0b4a64e2870a2f3c3a588c7053b31b26333d30d3349b&'}} style={{ width:400, height:400, resizeMode: 'contain', left:80, bottom:100, position:'absolute'}} />
       <View style={{ position: "absolute", bottom: 40, width: "100%", alignItems:'center', gap:24 }}>

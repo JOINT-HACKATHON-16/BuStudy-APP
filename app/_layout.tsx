@@ -69,6 +69,7 @@ export default function RootLayout() {
     'Suit-Medium': require('../assets/font/SUIT-Medium.otf'),
     'Suit-Bold': require('../assets/font/SUIT-Bold.otf'),
     'Suit-Semibold': require('../assets/font/SUIT-SemiBold.otf'),
+    'Suit-Heavy': require('../assets/font/SUIT-Heavy.otf'),
   });
 
   if (!fontsLoaded) {
