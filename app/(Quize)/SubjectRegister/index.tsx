@@ -54,25 +54,52 @@ export default function SubjectRegister() {
   // usePostSubject 훅 사용
   const postSubjectMutation = usePostSubject({
     onSuccess: (data) => {
-      console.log('과목 등록 성공:', data);
+      console.log('=== 과목 등록 성공 ===');
+      console.log('응답 데이터:', data);
+      console.log('과목 이름:', data.subject);
       Alert.alert('성공', '과목이 등록되었습니다.', [
         {
           text: '확인',
-          onPress: () => router.push('/(Quize)/SubjectDetail'),
+          onPress: () => router.push({
+            pathname: '/(Quize)/SubjectDetail',
+            params: {
+              subject: data.subject,
+            },
+          }),
         },
       ]);
     },
     onError: (error: any) => {
-      console.error('과목 등록 실패:', error);
+      console.error('=== 과목 등록 실패 ===');
+      console.error('Error:', error);
+      console.error('Response data:', JSON.stringify(error.response?.data, null, 2));
+      console.error('Status:', error.response?.status);
+      console.error('Message:', error.message);
       
+      // 400 에러 상세 정보 출력
+      if (error.response?.status === 400) {
+        const errorData = error.response?.data;
+        const errorMessage = errorData?.message || errorData?.Message || '요청 형식이 올바르지 않습니다.';
+        
+        console.error('400 에러 상세:', errorMessage);
+        console.error('전체 응답:', JSON.stringify(errorData, null, 2));
+        
+        Alert.alert(
+          '잘못된 요청',
+          `서버 오류: ${errorMessage}\n\n상태 코드: ${error.response?.status}`
+        );
+      }
       // 413 에러 (Payload Too Large) 처리
-      if (error.response?.status === 413) {
+      else if (error.response?.status === 413) {
         Alert.alert(
           '파일 크기 초과',
           '이미지 파일이 너무 큽니다. 더 작은 이미지를 선택해주세요.'
         );
-      } else {
-        Alert.alert('오류', '과목 등록에 실패했습니다. 다시 시도해주세요.');
+      }
+      // 기타 에러
+      else {
+        const statusText = error.response?.status ? `(${error.response.status})` : '';
+        Alert.alert('오류', `과목 등록에 실패했습니다 ${statusText}. 다시 시도해주세요.`);
       }
     },
   });
@@ -86,20 +113,23 @@ export default function SubjectRegister() {
     if (cameraRef.current) {
       try {
         const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.3, // 이미지 품질을 더 낮춤 (30%)
+          quality: 0.2, // 이미지 품질을 20%로 더 낮춤 (파일 크기 최소화)
           exif: false, // EXIF 데이터 제거
         });
+        
         if (photo) {
+          console.log('=== 사진 촬영 완료 ===');
+          console.log('Photo URI:', photo.uri);
           setSubjectImage(photo.uri);
         }
       } catch (error) {
-        console.error('Take picture error:', error);
+        console.error('사진 촬영 에러:', error);
         Alert.alert('오류', '사진을 찍을 수 없습니다.');
       }
     }
   };
 
-  // 카메라 버튼 클릭 -> 갤러리에서 사진 선택
+  // 갤러리에서 사진 선택
   const handleCameraButtonClick = async () => {
     try {
       // 갤러리 권한 요청
@@ -114,26 +144,34 @@ export default function SubjectRegister() {
         mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.1,
+        quality: 0.2, // 이미지 품질을 20%로 더 낮춤 (파일 크기 최소화)
         exif: false, // EXIF 데이터 제거
       });
 
       if (!result.canceled && result.assets[0]) {
+        console.log('=== 갤러리 이미지 선택 완료 ===');
+        console.log('Image URI:', result.assets[0].uri);
         setSubjectImage(result.assets[0].uri);
       }
     } catch (error) {
-      console.error('Gallery error:', error);
+      console.error('갤러리 에러:', error);
       Alert.alert('오류', '갤러리를 열 수 없습니다.');
     }
   };
 
+  // 다음 버튼 클릭 -> 과목 등록 API 호출
   const handleNextButtonClick = async () => {
     if (!subjectImage) {
       Alert.alert('사진을 선택해주세요', '과목 이미지를 촬영하거나 갤러리에서 선택해주세요.');
       return;
     }
 
-    // API 호출 - 이미지 URI만 전달하면 됩니다
+    console.log('=== 이미지 전송 시작 ===');
+    console.log('Image URI:', subjectImage);
+    console.log('URI 길이:', subjectImage.length);
+    console.log('URI 타입:', subjectImage.startsWith('file://') ? 'local file' : 'unknown');
+
+    // API 호출 - 이미지 URI만 전달
     postSubjectMutation.mutate({
       imageUri: subjectImage,
     });
@@ -149,10 +187,12 @@ export default function SubjectRegister() {
     })();
   }, [requestCameraPermission]);
 
+  // 권한 로딩 중
   if (!cameraPermission) {
     return null;
   }
 
+  // 권한 없음
   if (!cameraPermission.granted) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }} edges={['top']}>
@@ -195,14 +235,25 @@ export default function SubjectRegister() {
 
         <S.BottomSheet>
           <S.ImageActionContainer>
-            <S.CameraButton onPress={handleCameraButtonClick} disabled={postSubjectMutation.isPending}>
+            {/* 갤러리 버튼 */}
+            <S.CameraButton 
+              onPress={handleCameraButtonClick} 
+              disabled={postSubjectMutation.isPending}
+            >
               <S.CameraIconBox>
                 <CameraIcon />
               </S.CameraIconBox>
             </S.CameraButton>
-            <S.GalleryButton onPress={handleTakePicture} disabled={postSubjectMutation.isPending}>
+            
+            {/* 사진 촬영 버튼 */}
+            <S.GalleryButton 
+              onPress={handleTakePicture} 
+              disabled={postSubjectMutation.isPending}
+            >
               <GalleryCircleIcon />
             </S.GalleryButton>
+            
+            {/* 다음 버튼 (API 호출) */}
             <S.NextButton 
               onPress={handleNextButtonClick} 
               disabled={!subjectImage || postSubjectMutation.isPending}
@@ -216,7 +267,6 @@ export default function SubjectRegister() {
               </S.NextIconBox>
             </S.NextButton>
           </S.ImageActionContainer>
-
         </S.BottomSheet>
       </S.Container>
     </SafeAreaView>

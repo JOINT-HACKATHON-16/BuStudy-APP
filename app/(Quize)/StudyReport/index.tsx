@@ -1,11 +1,18 @@
-import { useRouter } from 'expo-router';
+import StyledBtn from '@/components/common/StyledBtn';
+import { Colors } from '@/constants/theme';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 import * as S from './style';
-import StyledBtn from '@/components/common/StyledBtn';
-import { Colors } from '@/constants/theme';
+
+interface Question {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+}
 
 const BackIcon = () => (
   <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -43,34 +50,55 @@ const ClockIcon = () => (
 
 export default function StudyReport() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+
+  // params에서 데이터 파싱
+  let parsedQuestions: Question[] = [];
+  let parsedUserAnswers: { [key: number]: string } = {};
+  
+  try {
+    if (params.questions) {
+      const questionsString = Array.isArray(params.questions) 
+        ? params.questions[0] 
+        : params.questions;
+      parsedQuestions = JSON.parse(questionsString);
+    }
+    
+    if (params.userAnswers) {
+      const answersString = Array.isArray(params.userAnswers)
+        ? params.userAnswers[0]
+        : params.userAnswers;
+      parsedUserAnswers = JSON.parse(answersString);
+    }
+  } catch (error) {
+    console.error('Data parsing error:', error);
+  }
+
+  const totalQuestions = parseInt(params.totalQuestions as string) || parsedQuestions.length;
+  const accuracy = parseFloat(params.accuracy as string) || 0;
 
   const routeInfo = {
-    departure: '라한 셀렉트, 테디베어박물관',
-    arrival: '경주월드, 캘리포니아비치',
-    date: '25.11.06',
+    departure: '성북3통굿개말길',
+    arrival: '대덕대학교',
+    date: '25.11.07',
     time: '오후 8:12 ~ 오후 8:34 (18분)',
-    problemCount: 16,
-    accuracy: 85.2,
+    problemCount: totalQuestions,
+    accuracy: accuracy,
   };
 
-  const quizResults = [
-    {
-      id: 1,
-      question: '한국 통일 이후 신라에서 무열왕계 직계 자손이 왕권을 강화하기 위해 강조한 정치 이념은 무엇인가요?',
-      answers: ['유교', '도교', '불교', '자경'],
-      correctAnswerId: 'a',
-      userAnswer: 'a',
-      explanation: '신라의 무열왕계 직계 자손들은 삼국 통일 이후 왕권을 공고히 하려는 과정에서 유교의 도덕적·정치적 원리를 강조하였다. 유교는 국가적 통합과 왕권 정당화에 중요한 역할을 했으며, 신라 왕은 유교 도덕을 몸소 실천하며 \'선정(선한 정치)\'을 실현하려 했다.',
-    },
-    {
-      id: 2,
-      question: '한국 통일 이후 신라에서 무열왕계 직계 자손이 왕권을 강화하기 위해 강조한 정치 이념은 무엇인가요?',
-      answers: ['유교', '도교', '불교', '자경'],
-      correctAnswerId: 'a',
-      userAnswer: 'b',
-      explanation: '신라의 무열왕계 직계 자손들은 삼국 통일 이후 왕권을 공고히 하려는 과정에서 유교의 도덕적·정치적 원리를 강조하였다. 유교는 국가적 통합과 왕권 정당화에 중요한 역할을 했으며, 신라 왕은 유교 도덕을 몸소 실천하며 \'선정(선한 정치)\'을 실현하려 했다.',
-    },
-  ];
+  // 퀴즈 결과 데이터 생성
+  const quizResults = parsedQuestions.map((question, index) => {
+    const userAnswer = parsedUserAnswers[index];
+    
+    return {
+      id: index + 1,
+      question: question.question,
+      answers: question.options,
+      correctAnswerId: question.correctAnswer, // "0", "1", "2", "3"
+      userAnswer: userAnswer, // "0", "1", "2", "3"
+      explanation: question.explanation,
+    };
+  });
 
   const handleBack = () => {
     router.back();
@@ -126,7 +154,6 @@ export default function StudyReport() {
             <S.QuizListContainer>
               {quizResults.map((quiz) => {
                 const isCorrect = quiz.userAnswer === quiz.correctAnswerId;
-                const answerLabels = ['a', 'b', 'c', 'd'];
 
                 return (
                   <S.QuizItemContainer key={quiz.id}>
@@ -137,15 +164,19 @@ export default function StudyReport() {
 
                       <S.AnswerList>
                         {quiz.answers.map((answer, index) => {
-                          const answerId = answerLabels[index];
+                          const answerId = index.toString(); // "0", "1", "2", "3"
                           const isUserAnswer = answerId === quiz.userAnswer;
                           const isCorrectAnswer = answerId === quiz.correctAnswerId;
                           
                           let answerState = 'default';
+                          
+                          // 사용자가 선택한 오답을 먼저 체크 (빨간색)
+                          if (isUserAnswer && !isCorrect) {
+                            answerState = 'incorrect';
+                          }
+                          // 정답 표시 (초록색) - 사용자가 맞췄든 틀렸든 항상 표시
                           if (isCorrectAnswer) {
                             answerState = 'correct';
-                          } else if (isUserAnswer && !isCorrect) {
-                            answerState = 'incorrect';
                           }
 
                           return (

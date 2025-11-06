@@ -1,5 +1,6 @@
 import StyledBtn from '@/components/common/StyledBtn';
 import getSub, { Subject } from '@/hooks/learn/useGetSub';
+import { useLearningStartMutation } from '@/hooks/study/useLearningStart';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
@@ -22,8 +23,53 @@ const BackIcon: React.FC = () => (
 const SubjectSelection: React.FC = () => {
   const router = useRouter();
   const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // 학습 시작 API 호출 훅
+  const learningStartMutation = useLearningStartMutation({
+    onSuccess: (data) => {
+      console.log('학습 시작 성공:', data);
+      
+      // contentType에 따라 다른 페이지로 이동
+      if (data.contentType === 'QUIZ') {
+        router.push({
+          pathname: '/(Quize)/QuizSolving',
+          params: { 
+            subject: selectedSubject,
+            uploadId: data.uploadId,
+            questions: JSON.stringify(data.questions),
+            totalQuestions: data.totalQuestions.toString(),
+          }
+        });
+      } else if (data.contentType === 'AUDIO') {
+        router.push({
+          pathname: '/(Quize)/AudioLearn',
+          params: { 
+            subject: selectedSubject,
+            uploadId: data.uploadId,
+            content: data.content,
+            duration: data.duration.toString(),
+          }
+        });
+      } else if (data.contentType === 'LECTURE') {
+        router.push({
+          pathname: '/(Quize)/VideoLearn',
+          params: { 
+            subject: selectedSubject,
+            lectureId: data.lectureId,
+          }
+        });
+      }
+    },
+    onError: (error: any) => {
+      console.error('학습 시작 실패:', error);
+      console.error('에러 상세:', error.response?.data);
+      console.error('에러 상태:', error.response?.status);
+      alert(`학습을 시작할 수 없습니다.\n${error.response?.data?.message || '다시 시도해주세요.'}`);
+    },
+  });
 
   // 컴포넌트 마운트 시 과목 목록 가져오기
   useEffect(() => {
@@ -31,10 +77,16 @@ const SubjectSelection: React.FC = () => {
       try {
         setIsLoading(true);
         const response = await getSub();
+        console.log('과목 목록 조회 성공:', response.subjects);
         setSubjects(response.subjects);
-      } catch (error) {
-        console.error('Failed to fetch subjects:', error);
+      } catch (error: any) {
+        console.error('과목 목록 조회 실패:', error);
+        console.error('에러 상세:', error.message);
         setSubjects([]);
+        // 타임아웃 에러인 경우 특별 처리
+        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+          console.warn('서버 응답 시간 초과. 과목이 없는 것으로 처리합니다.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -45,38 +97,17 @@ const SubjectSelection: React.FC = () => {
 
   const handleSubjectPress = (subjectId: number, subjectName: string) => {
     setSelectedSubject(subjectName);
+    setSelectedSubjectId(subjectId);
   };
 
   const handleNext = async () => {
-    if (selectedSubject) {
-      // TODO: 실제 서버 API 호출로 교체 필요
-      // 예시: const response = await fetch(`/api/learning-type?subject=${selectedSubject}`);
-      // const { learningType } = await response.json();
+    if (selectedSubject && selectedSubjectId) {
+      console.log('학습 시작 요청:', { subjectId: selectedSubjectId });
       
-      // 임시로 랜덤하게 학습 타입 결정 (테스트용)
-      const learningTypes: ('quiz' | 'audio' | 'video')[] = ['quiz', 'audio', 'video'];
-      // 
-      const learningType = learningTypes[1];
-      
-      console.log('Selected subject:', selectedSubject, 'Learning type:', learningType);
-      
-      // 학습 타입에 따라 다른 페이지로 이동
-      if (learningType === 'quiz') {
-        router.push({
-          pathname: '/(Quize)/QuizSolving',
-          params: { subject: selectedSubject }
-        });
-      } else if (learningType === 'audio') {
-        router.push({
-          pathname: '/(Quize)/AudioLearn',
-          params: { subject: selectedSubject }
-        });
-      } else if (learningType === 'video') {
-        router.push({
-          pathname: '/(Quize)/VideoLearn',
-          params: { subject: selectedSubject }
-        });
-      }
+      // 학습 시작 API 호출 - subjectId만 전달
+      learningStartMutation.mutate({
+        subjectId: selectedSubjectId,
+      });
     }
   };
 
@@ -127,7 +158,7 @@ const SubjectSelection: React.FC = () => {
           <StyledBtn
             label="다음"
             onPress={handleNext}
-            isActive={!!selectedSubject}
+            isActive={!!selectedSubject && !learningStartMutation.isPending}
             style={{marginBottom: 40}}
           />
         </S.BottomContainer>

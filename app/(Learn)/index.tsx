@@ -2,11 +2,9 @@ import StyledBtn from '@/components/common/StyledBtn';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useGetBusStops } from '@/hooks/bus/useGetBusStop';
-import { usePostBusTravelTime } from '@/hooks/bus/usePostBus';
-import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Alert, View } from 'react-native';
+import React, { useState } from 'react';
+import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 import * as S from './style';
@@ -85,74 +83,21 @@ const Learn: React.FC = () => {
   const [arrival, setArrival] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isArrivalFocused, setIsArrivalFocused] = useState(false);
-  const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
-  const [shouldFetchBusStops, setShouldFetchBusStops] = useState(false);
-  const [estimatedTime, setEstimatedTime] = useState<number | null>(null); // 예상 소요 시간 저장
+  const [estimatedTime] = useState<number>(35); // 더미 예상 시간
   const router = useRouter();
 
-  // 버스 경로 시간 API 호출 훅
-  const postBusTravelTimeMutation = usePostBusTravelTime({
-    onSuccess: (data) => {
-      console.log('버스 경로 시간 조회 성공:', data);
-      setEstimatedTime(data.estimatedTimeMinutes); // 예상 시간 저장
-    },
-    onError: (error) => {
-      console.error('버스 경로 시간 조회 실패:', error);
-      Alert.alert('오류', '경로 시간을 조회할 수 없습니다.');
-    },
-  });
-
-  // 하드코딩된 값으로 API 테스트
-  const testBusApi = () => {
-    postBusTravelTimeMutation.mutate({
-      sx: 36.38,
-      sy: 127.36,
-      streetAddress: '대전광역시 유성구 가정북로 68',
-    });
-  };
-
-  // 위치 권한 요청 및 현재 위치 가져오기
-  useEffect(() => {
-    (async () => {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('권한 필요', '위치 권한이 필요합니다.');
-          return;
-        }
-
-        const currentLocation = await Location.getCurrentPositionAsync({});
-        setLocation({
-          lat: currentLocation.coords.latitude,
-          lon: currentLocation.coords.longitude,
-        });
-        console.log('Current location:', {
-          lat: currentLocation.coords.latitude,
-          lon: currentLocation.coords.longitude,
-        });
-      } catch (error) {
-        console.error('Location error:', error);
-        Alert.alert('오류', '위치를 가져올 수 없습니다.');
-      }
-    })();
-  }, []);
-
-  // 버스 정류장 데이터 가져오기 (드롭다운을 열었을 때만)
+  // API로 버스 정류장 데이터 가져오기
   const { data: busStopsData, isLoading: isBusStopsLoading } = useGetBusStops({
-    lat: location?.lat || 0,
-    lon: location?.lon || 0,
-  }, {
-    enabled: shouldFetchBusStops && location !== null, // 드롭다운 열었을 때만 요청
+    lat: 36.3,
+    lon: 127.3,
   });
 
-  console.log('Bus stops data:', busStopsData);
-
-  // 서버에서 받은 버스 정류장 데이터를 UI 형식으로 변환
-  const busStations: BusStation[] = busStopsData 
+  // API 데이터를 BusStation 형태로 변환
+  const busStations: BusStation[] = busStopsData
     ? busStopsData.map((stop) => ({
         id: stop.nodeid,
         name: stop.nodenm,
-        time: '', // 서버에서 시간 정보를 주지 않으면 빈 문자열
+        time: '', // API에서 시간 정보가 없으므로 빈 문자열
       }))
     : [];
 
@@ -232,10 +177,6 @@ const Learn: React.FC = () => {
                 <S.DropdownButton 
                   onPress={() => {
                     setIsDropdownOpen(!isDropdownOpen);
-                    // 드롭다운을 열 때 API 요청 시작
-                    if (!isDropdownOpen) {
-                      setShouldFetchBusStops(true);
-                    }
                   }}
                   activeOpacity={1}
                 >
@@ -251,7 +192,7 @@ const Learn: React.FC = () => {
                   <S.DropdownList>
                     {isBusStopsLoading ? (
                       <S.DropdownItem activeOpacity={1}>
-                        <S.StationName>로딩 중...</S.StationName>
+                        <S.StationName>버스 정류장을 불러오는 중...</S.StationName>
                       </S.DropdownItem>
                     ) : busStations.length === 0 ? (
                       <S.DropdownItem activeOpacity={1}>
@@ -266,7 +207,7 @@ const Learn: React.FC = () => {
                         >
                           <S.StationName>{station.name}</S.StationName>
                           {station.time && (
-                            <S.StationDirection>{station.time} 도착 예정</S.StationDirection>
+                            <S.StationDirection>{station.time}</S.StationDirection>
                           )}
                         </S.DropdownItem>
                       ))
@@ -306,13 +247,11 @@ const Learn: React.FC = () => {
           {departure !== '' && arrival !== '' && !isArrivalFocused ? (
             <View style={{ flex: 1, alignItems:'flex-end'}}>
               <ThemedText style={{color: Colors.light.primary60}}>
-                예상 소요시간 : {estimatedTime !== null ? `${estimatedTime}분` : '계산 중...'}
+                예상 소요시간 : {estimatedTime}분
               </ThemedText>
               <StyledBtn
                 label="학습 시작"
                 onPress={() => {
-                  // API 호출 테스트
-                  testBusApi();
                   // 학습 시작 페이지로 이동
                   router.push('/(Quize)/SubjectSelection');
                 }}

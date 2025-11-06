@@ -1,10 +1,10 @@
 import StyledBtn from "@/components/common/StyledBtn";
 import { Colors } from "@/constants/theme";
+import { Audio } from 'expo-av';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Speech from 'expo-speech';
-import { Audio } from 'expo-av';
 import React, { useState } from "react";
-import { Modal, Platform, Alert } from "react-native";
+import { Alert, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import * as S from "./style";
@@ -20,13 +20,20 @@ const BackIcon = () => (
 
 export default function AudioLearn() {
   const router = useRouter();
-  const { subject } = useLocalSearchParams<{ subject: string }>();
+  const params = useLocalSearchParams<{ 
+    subject: string;
+    uploadId?: string;
+    content?: string;
+    duration?: string;
+  }>();
+  
   const [isAudioStarted, setIsAudioStarted] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
 
+  // URL 파라미터에서 받은 데이터 사용
   const audioContent = {
-    title: "신라의 무열왕계와 유교 사상",
-    description:
+    title: params.subject || "신라의 무열왕계와 유교 사상",
+    description: params.content || 
       "신라의 무열왕계 직계 자손들은 삼국 통일 이후 왕권을 공고히 하려는 과정에서 유교의 도덕적·정치적 원리를 강조하였다. 유교는 국가적 통합과 왕권 정당화에 중요한 역할을 했으며, 신라 왕은 유교 도덕을 몸소 실천하며 선정(선한 정치)을 실현하려 했다.",
   };
 
@@ -40,9 +47,6 @@ export default function AudioLearn() {
         staysActiveInBackground: false,
         shouldDuckAndroid: true,
       });
-
-      // 사용 가능한 음성 확인
-      const voices = await Speech.getAvailableVoicesAsync();
 
       // 텍스트를 음성으로 변환
       Speech.speak(audioContent.description, {
@@ -101,7 +105,7 @@ export default function AudioLearn() {
           <S.BackButton onPress={() => router.back()}>
             <BackIcon />
           </S.BackButton>
-          <S.SubjectText>{subject}</S.SubjectText>
+          <S.SubjectText>{params.subject || "과목"}</S.SubjectText>
         </S.Header>
 
         <S.ContentContainer>

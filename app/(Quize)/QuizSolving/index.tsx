@@ -14,41 +14,71 @@ const BackIcon = () => (
   </Svg>
 );
 
-interface Answer {
-  id: string;
-  text: string;
-}
-
 interface Question {
-  id: string;
-  subject: string;
   question: string;
-  answers: Answer[];
-  correctAnswerId: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
 }
 
 export default function QuizSolving() {
   const router = useRouter();
-  const { subject } = useLocalSearchParams<{ subject: string }>();
+  const params = useLocalSearchParams();
+  
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [userAnswers, setUserAnswers] = useState<{ [key: number]: string }>({}); // 사용자 답변 저장
 
-  // Mock data - 전달받은 과목 사용
-  const currentQuestion: Question = {
-    id: '1',
-    subject: subject || '과학', // 전달받은 과목 또는 기본값
-    question: '한국 통일 이후 신라에서 무열왕계 직계 자손이 왕권을 강화하기 위해 강조한 정치 이념은 무엇인가요?',
-    answers: [
-      { id: '1', text: '유교' },
-      { id: '2', text: '도교' },
-      { id: '3', text: '불교' },
-      { id: '4', text: '자경' },
-    ],
-    correctAnswerId: '3',
+  // API에서 받은 questions 파싱
+  let parsedQuestions: Question[] = [];
+  try {
+    if (params.questions) {
+      const questionsString = Array.isArray(params.questions) 
+        ? params.questions[0] 
+        : params.questions;
+      parsedQuestions = JSON.parse(questionsString);
+      console.log('Parsed questions:', parsedQuestions);
+    }
+  } catch (error) {
+    console.error('Questions parsing error:', error);
+  }
+
+  // 현재 문제 가져오기
+  const currentApiQuestion = parsedQuestions[currentQuestionIndex];
+  
+  if (!currentApiQuestion) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#f1f1f1' }} edges={['top']}>
+        <S.Container>
+          <S.Header>
+            <S.BackButton onPress={() => router.back()}>
+              <BackIcon />
+            </S.BackButton>
+            <S.SubjectText>{params.subject || "과목"}</S.SubjectText>
+          </S.Header>
+          <S.Content>
+            <S.QuestionText>문제 데이터를 불러올 수 없습니다.</S.QuestionText>
+          </S.Content>
+        </S.Container>
+      </SafeAreaView>
+    );
+  }
+
+  // API 데이터를 내부 형식으로 변환
+  // correctAnswer는 인덱스 문자열 ("0", "1", "2", "3")
+  const currentQuestion = {
+    id: (currentQuestionIndex + 1).toString(),
+    subject: params.subject || '과목',
+    question: currentApiQuestion.question,
+    answers: currentApiQuestion.options.map((opt: string, idx: number) => ({
+      id: idx.toString(), // "0", "1", "2", "3"
+      text: opt,
+    })),
+    correctAnswerId: currentApiQuestion.correctAnswer, // "0", "1", "2", "3"
   };
 
-  const explanation = "신라의 무열왕계 직계 자손들은 삼국 통일 이후 왕권을 공고히 하려는 과정에서 유교의 도덕적·정치적 원리를 강조하였다. 유교는 국가적 통합과 왕권 정당화에 중요한 역할을 했으며, 신라 왕은 유교 도덕을 몸소 실천하며 선정(선한 정치)을 실현하려 했다.";
-
+  const explanation = currentApiQuestion.explanation;
   const isCorrect = selectedAnswer === currentQuestion.correctAnswerId;
 
   const handleAnswerPress = (answerId: string) => {
@@ -59,14 +89,49 @@ export default function QuizSolving() {
 
   const handleConfirm = () => {
     if (selectedAnswer && !showResult) {
+      // 사용자 답변 저장
+      setUserAnswers(prev => ({
+        ...prev,
+        [currentQuestionIndex]: selectedAnswer,
+      }));
       setShowResult(true);
     } else if (showResult) {
-      // Navigate to next question or finish
-      router.push('/(Quize)/StudyReport');
-      console.log('Next question');
-      // TODO: Handle next question or finish
-      router.push('/(Quize)/StudyReport');
-      router.back();
+      // 다음 문제로 이동
+      const totalQuestions = parsedQuestions.length;
+      const nextQuestionIndex = currentQuestionIndex + 1;
+      
+      if (nextQuestionIndex < totalQuestions) {
+        // 다음 문제가 있으면 상태 리셋하고 다음 문제로
+        setCurrentQuestionIndex(nextQuestionIndex);
+        setSelectedAnswer(null);
+        setShowResult(false);
+      } else {
+        // 마지막 문제였으면 학습 리포트로 이동
+        console.log('퀴즈 완료. 학습 리포트로 이동');
+        
+        // 마지막 문제 답변 포함한 최종 답변 객체
+        const finalUserAnswers = { ...userAnswers, [currentQuestionIndex]: selectedAnswer };
+        
+        // 정답률 계산
+        const finalCorrectCount = Object.keys(finalUserAnswers).filter((key) => {
+          const index = parseInt(key);
+          return finalUserAnswers[index] === parsedQuestions[index].correctAnswer;
+        }).length;
+        
+        const accuracy = ((finalCorrectCount / totalQuestions) * 100).toFixed(1);
+        
+        router.push({
+          pathname: '/(Quize)/StudyReport',
+          params: {
+            subject: params.subject as string,
+            uploadId: params.uploadId as string,
+            totalQuestions: params.totalQuestions as string,
+            questions: params.questions as string,
+            userAnswers: JSON.stringify(finalUserAnswers),
+            accuracy: accuracy,
+          },
+        });
+      }
     }
   };
 
@@ -99,7 +164,9 @@ export default function QuizSolving() {
           <S.BackButton onPress={handleBack}>
             <BackIcon />
           </S.BackButton>
-          <S.SubjectText>{subject}</S.SubjectText>
+          <S.SubjectText>
+            {params.subject || "과목"} ({currentQuestionIndex + 1}/{parsedQuestions.length})
+          </S.SubjectText>
         </S.Header>
 
         <S.Content>

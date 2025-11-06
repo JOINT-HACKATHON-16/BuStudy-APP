@@ -1,12 +1,12 @@
+import StyledBtn from "@/components/common/StyledBtn";
+import { ThemedText } from "@/components/themed-text";
 import { Colors } from "@/constants/theme";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React from "react";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import * as S from "./style";
-import StyledBtn from "@/components/common/StyledBtn";
-import { ThemedText } from "@/components/themed-text";
-import { View } from "react-native";
 
 const BackIcon = () => (
   <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -19,6 +19,10 @@ const BackIcon = () => (
 
 export default function SubjectDetail() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ subject?: string }>();
+
+  // API 응답에서 받은 과목 이름
+  const subjectName = params.subject || "과목";
 
   const handleBack = () => {
     router.back();
@@ -46,7 +50,7 @@ export default function SubjectDetail() {
             <View style={{ gap: 8 }}>
               <ThemedText>과목 이름</ThemedText>
               <S.Input editable={false} pointerEvents="none" >
-                수학
+                {subjectName}
               </S.Input>
             </View>
           </S.InputContainer>
