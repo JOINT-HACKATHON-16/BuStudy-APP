@@ -1,9 +1,9 @@
 import { Colors } from '@/constants/theme';
 import React, { useState } from 'react';
+import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 import * as S from './style';
-import { View } from 'react-native';
 
 interface RouteRecord {
   id: string;
@@ -56,6 +56,23 @@ const ArrowDownIcon: React.FC<{ rotated?: boolean }> = ({ rotated = false }) => 
     <Path
       d="M4 6L8 10L12 6"
       stroke="#cacaca"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+const RouteArrowIcon: React.FC = () => (
+  <Svg 
+    width="16" 
+    height="16" 
+    viewBox="0 0 16 16" 
+    fill="none"
+  >
+    <Path
+      d="M8 3L8 13M8 13L4 9M8 13L12 9"
+      stroke={Colors.light.primary30}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -203,7 +220,7 @@ const Learn: React.FC = () => {
                   <S.RouteInfo>
                     <S.LocationText>{record.departure}</S.LocationText>
                     <S.ArrowIconContainer>
-                      <ArrowDownIcon />
+                      <RouteArrowIcon />
                     </S.ArrowIconContainer>
                     <S.LocationText>{record.arrival}</S.LocationText>
                   </S.RouteInfo>
