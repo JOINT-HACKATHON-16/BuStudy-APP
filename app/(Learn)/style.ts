@@ -57,6 +57,7 @@ export const InputWrapper = styled.View`
 
 export const InputField = styled.View`
   gap: 4px;
+  position: relative;
 `;
 
 export const InputLabel = styled.Text`
@@ -72,7 +73,67 @@ export const TextInput = styled.TextInput`
   padding: 12px 16px;
   font-family: "SUIT-Medium";
   font-size: 14px;
+  color: ${Colors.light.gray3};
+`;
+
+export const DropdownButton = styled.TouchableOpacity`
+  background-color: #f6f6f6;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 12px 16px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const DropdownText = styled.Text<{ selected: boolean }>`
+  font-family: "SUIT-Medium";
+  font-size: 14px;
+  color: ${(props) => (props.selected ? Colors.light.gray3 : "#cacaca")};
+`;
+
+export const ArrowIconWrapper = styled.View`
+  width: 16px;
+  height: 16px;
+  justify-content: center;
+  align-items: center;
+`;
+
+export const DropdownList = styled.View`
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  background-color: #f6f6f6;
+  border-left: 1px solid #e6e6e6;
+  border-right: 1px solid #e6e6e6;
+  border-bottom: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 12px 16px;
+  gap: 8px;
+  z-index: 100;
+`;
+
+export const DropdownPlaceholder = styled.Text`
+  font-family: "SUIT-Medium";
+  font-size: 14px;
   color: ${Colors.light.gray7};
+`;
+
+export const DropdownItem = styled.TouchableOpacity`
+  gap: 4px;
+`;
+
+export const StationName = styled.Text`
+  font-family: "SUIT-Medium";
+  font-size: 14px;
+  color: ${Colors.light.gray3};
+`;
+
+export const StationDirection = styled.Text`
+  font-family: "SUIT-Medium";
+  font-size: 12px;
+  color: ${Colors.light.gray5};
 `;
 
 export const ScrollContainer = styled.ScrollView`
@@ -135,6 +196,37 @@ export const TimeText = styled.Text`
 `;
 
 export const DateText = styled.Text`
+  font-family: "SUIT-Medium";
+  font-size: 12px;
+  color: ${Colors.light.gray7};
+`;
+
+export const BusStationList = styled.View`
+  gap: 16px;
+`;
+
+export const BusStationCard = styled.TouchableOpacity`
+  background-color: ${Colors.light.white};
+  padding: 16px;
+  border-radius: 12px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const BusStationName = styled.Text`
+  font-family: "SUIT-Medium";
+  font-size: 14px;
+  color: ${Colors.light.gray3};
+`;
+
+export const BusTimeInfo = styled.View`
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+`;
+
+export const BusTime = styled.Text`
   font-family: "SUIT-Medium";
   font-size: 12px;
   color: ${Colors.light.gray7};

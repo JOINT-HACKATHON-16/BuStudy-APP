@@ -1,8 +1,9 @@
+import { Colors } from '@/constants/theme';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 import * as S from './style';
-import { Colors } from '@/constants/theme';
+import { View } from 'react-native';
 
 interface RouteRecord {
   id: string;
@@ -11,6 +12,18 @@ interface RouteRecord {
   timeRange: string;
   duration: string;
   date: string;
+}
+
+interface StationOption {
+  id: string;
+  name: string;
+  direction: string;
+}
+
+interface BusStation {
+  id: string;
+  name: string;
+  time: string;
 }
 
 const ClockIcon: React.FC = () => (
@@ -32,11 +45,17 @@ const SwitchIcon: React.FC = () => (
   </Svg>
 );
 
-const ArrowDownIcon: React.FC = () => (
-  <Svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+const ArrowDownIcon: React.FC<{ rotated?: boolean }> = ({ rotated = false }) => (
+  <Svg 
+    width="16" 
+    height="16" 
+    viewBox="0 0 16 16" 
+    fill="none"
+    style={{ transform: [{ rotate: rotated ? '180deg' : '0deg' }] }}
+  >
     <Path
-      d="M8 3V13M8 13L12 9M8 13L4 9"
-      stroke="#5087ee"
+      d="M4 6L8 10L12 6"
+      stroke="#cacaca"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -47,6 +66,34 @@ const ArrowDownIcon: React.FC = () => (
 const Learn: React.FC = () => {
   const [departure, setDeparture] = useState('');
   const [arrival, setArrival] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isArrivalFocused, setIsArrivalFocused] = useState(false);
+
+  const stationOptions: StationOption[] = [
+    {
+      id: '1',
+      name: '라한 셀렉트, 테디베어박물관',
+      direction: '소호캄, 일성콘도 방향',
+    },
+    {
+      id: '2',
+      name: '수상공연장입구',
+      direction: '켄싱턴리조트, 환화콘도 방향',
+    },
+  ];
+
+  const busStations: BusStation[] = [
+    {
+      id: '1',
+      name: '경주월드, 캘리포니아비치',
+      time: '4분',
+    },
+  ];
+
+  const handleSelectStation = (station: StationOption) => {
+    setDeparture(station.name);
+    setIsDropdownOpen(false);
+  };
 
   const routeRecords: RouteRecord[] = [
     {
@@ -101,12 +148,32 @@ const Learn: React.FC = () => {
             <S.InputWrapper>
               <S.InputField>
                 <S.InputLabel>출발</S.InputLabel>
-                <S.TextInput
-                  placeholder="출발 정류장을 입력해주세요"
-                  placeholderTextColor="#cacaca"
-                  value={departure}
-                  onChangeText={setDeparture}
-                />
+                <S.DropdownButton 
+                  onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+                  activeOpacity={0.7}
+                >
+                  <S.DropdownText selected={!!departure}>
+                    {departure || '출발 정류장을 선택해주세요'}
+                  </S.DropdownText>
+                  <S.ArrowIconWrapper>
+                    <ArrowDownIcon rotated={isDropdownOpen} />
+                  </S.ArrowIconWrapper>
+                </S.DropdownButton>
+
+                {isDropdownOpen && (
+                  <S.DropdownList>
+                    {stationOptions.map((station) => (
+                      <S.DropdownItem 
+                        key={station.id}
+                        onPress={() => handleSelectStation(station)}
+                        activeOpacity={0.7}
+                      >
+                        <S.StationName>{station.name}</S.StationName>
+                        <S.StationDirection>{station.direction}</S.StationDirection>
+                      </S.DropdownItem>
+                    ))}
+                  </S.DropdownList>
+                )}
               </S.InputField>
 
               <S.InputField>
@@ -116,6 +183,7 @@ const Learn: React.FC = () => {
                   placeholderTextColor="#cacaca"
                   value={arrival}
                   onChangeText={setArrival}
+                  onFocus={() => setIsArrivalFocused(true)}
                 />
               </S.InputField>
             </S.InputWrapper>
@@ -126,31 +194,61 @@ const Learn: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 32, paddingBottom: 120 }}
         >
-          <S.RouteList>
-            {routeRecords.map((record) => (
-              <S.RouteCard key={record.id}>
-                <S.RouteInfo>
-                  <S.LocationText>{record.departure}</S.LocationText>
-                  <S.ArrowIconContainer>
-                    <ArrowDownIcon />
-                  </S.ArrowIconContainer>
-                  <S.LocationText>{record.arrival}</S.LocationText>
-                </S.RouteInfo>
+          {!isArrivalFocused ? (
+            <View>
+              <S.SectionTitle>최근 노선</S.SectionTitle>
+              <S.RouteList>
+              {routeRecords.map((record) => (
+                <S.RouteCard key={record.id}>
+                  <S.RouteInfo>
+                    <S.LocationText>{record.departure}</S.LocationText>
+                    <S.ArrowIconContainer>
+                      <ArrowDownIcon />
+                    </S.ArrowIconContainer>
+                    <S.LocationText>{record.arrival}</S.LocationText>
+                  </S.RouteInfo>
 
-                <S.RouteFooter>
-                  <S.TimeRow>
-                    <S.ClockIcon>
-                      <ClockIcon />
-                    </S.ClockIcon>
-                    <S.TimeText>
-                      {record.timeRange} ({record.duration})
-                    </S.TimeText>
-                  </S.TimeRow>
-                  <S.DateText>{record.date}</S.DateText>
-                </S.RouteFooter>
-              </S.RouteCard>
-            ))}
-          </S.RouteList>
+                  <S.RouteFooter>
+                    <S.TimeRow>
+                      <S.ClockIcon>
+                        <ClockIcon />
+                      </S.ClockIcon>
+                      <S.TimeText>
+                        {record.timeRange} ({record.duration})
+                      </S.TimeText>
+                    </S.TimeRow>
+                    <S.DateText>{record.date}</S.DateText>
+                  </S.RouteFooter>
+                </S.RouteCard>
+              ))}
+            </S.RouteList>
+            </View>
+            
+          ) : (
+            <View>
+              <S.SectionTitle>버스 정류장</S.SectionTitle>
+              <S.BusStationList>
+                {busStations.map((station) => (
+                  <S.BusStationCard 
+                    key={station.id}
+                    onPress={() => {
+                      setArrival(station.name);
+                      setIsArrivalFocused(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <S.BusStationName>{station.name}</S.BusStationName>
+                    <S.BusTimeInfo>
+                      <S.ClockIcon>
+                        <ClockIcon />
+                      </S.ClockIcon>
+                      <S.BusTime>{station.time}</S.BusTime>
+                    </S.BusTimeInfo>
+                  </S.BusStationCard>
+                ))}
+              </S.BusStationList>
+            </View>
+          )}
         </S.ScrollContainer>
       </S.LearnContainer>
     </SafeAreaView>
