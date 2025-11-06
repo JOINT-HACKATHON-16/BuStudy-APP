@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import Learn from '../(Learn)';
 import Main from '../(Main)';
-import Storage from '../(Storage)';
 import TabBar from './index';
+import * as S from './style';
 
 export default function TabBarLayout() {
   // 1. 현재 활성화된 탭 상태를 저장
@@ -13,15 +13,19 @@ export default function TabBarLayout() {
   const handleTabPress = (tabName: 'storage' | 'home' | 'study') => {
     // 탭 상태 업데이트
     setActiveTab(tabName);
-    // TODO: React Navigation을 사용한다면 navigate(tabName) 등의 코드를 추가할 수 있습니다.
   };
 
   // 3. activeTab 상태에 따라 렌더링할 화면을 결정하는 함수
   const renderScreen = () => {
     switch (activeTab) {
       case 'storage':
-        return <Storage />;
-      
+        return (
+          <S.PlaceholderContainer>
+            <S.PlaceholderText>보관함 화면</S.PlaceholderText>
+            <S.PlaceholderSubText>StorageScreen 컴포넌트를 만들어주세요</S.PlaceholderSubText>
+          </S.PlaceholderContainer>
+        );
+
       case 'home':
         return <Main />;
       
