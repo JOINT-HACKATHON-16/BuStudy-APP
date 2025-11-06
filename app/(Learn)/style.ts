@@ -100,14 +100,15 @@ export const ArrowIconWrapper = styled.View`
 
 export const DropdownList = styled.View`
   position: absolute;
-  top: 50px;
+  top: 56px;
   left: 0;
   right: 0;
   background-color: #f6f6f6;
   border-left:1px solid black;
-  border-radius: 8px;
+  border-bottom-left-radius:8px;
+  border-bottom-right-radius:8px ;
   padding: 12px 16px;
-  gap: 12px;
+  gap: 16px;
   z-index: 100;
   border-left-width: 1px;
   border-right-width: 1px;

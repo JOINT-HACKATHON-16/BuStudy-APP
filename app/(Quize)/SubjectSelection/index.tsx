@@ -31,13 +31,36 @@ const SubjectSelection: React.FC = () => {
     setSelectedSubject(subjectName);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (selectedSubject) {
-      router.push({
-        pathname: '/(Quize)/QuizSolving',
-        params: { subject: selectedSubject }
-      });
-      console.log('Selected subject:', selectedSubject);
+      // TODO: 실제 서버 API 호출로 교체 필요
+      // 예시: const response = await fetch(`/api/learning-type?subject=${selectedSubject}`);
+      // const { learningType } = await response.json();
+      
+      // 임시로 랜덤하게 학습 타입 결정 (테스트용)
+      const learningTypes: ('quiz' | 'audio' | 'video')[] = ['quiz', 'audio', 'video'];
+      // 
+      const learningType = learningTypes[1];
+      
+      console.log('Selected subject:', selectedSubject, 'Learning type:', learningType);
+      
+      // 학습 타입에 따라 다른 페이지로 이동
+      if (learningType === 'quiz') {
+        router.push({
+          pathname: '/(Quize)/QuizSolving',
+          params: { subject: selectedSubject }
+        });
+      } else if (learningType === 'audio') {
+        router.push({
+          pathname: '/(Quize)/AudioLearn',
+          params: { subject: selectedSubject }
+        });
+      } else if (learningType === 'video') {
+        router.push({
+          pathname: '/(Quize)/VideoLearn',
+          params: { subject: selectedSubject }
+        });
+      }
     }
   };
 
