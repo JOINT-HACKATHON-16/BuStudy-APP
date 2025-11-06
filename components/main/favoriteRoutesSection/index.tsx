@@ -17,7 +17,11 @@ const FavoriteRoutesSection: React.FC<FavoriteRoutesSectionProps> = ({ routes })
   return (
     <S.FavoriteRoutesSection>
       <S.SectionTitle>자주가는 노선</S.SectionTitle>
-      <S.RouteCardsScroll horizontal showsHorizontalScrollIndicator={false}>
+      <S.RouteCardsScroll 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingRight: 32 }}
+      >
         {routes.map((route) => (
           <RouteCard key={route.id} from={route.from} to={route.to} time={route.time} />
         ))}
