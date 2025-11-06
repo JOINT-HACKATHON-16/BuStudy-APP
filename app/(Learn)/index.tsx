@@ -1,10 +1,12 @@
+import StyledBtn from '@/components/common/StyledBtn';
 import { Colors } from '@/constants/theme';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 import * as S from './style';
-import StyledBtn from '@/components/common/StyledBtn';
+import { ThemedText } from '@/components/themed-text';
 
 interface RouteRecord {
   id: string;
@@ -86,6 +88,7 @@ const Learn: React.FC = () => {
   const [arrival, setArrival] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isArrivalFocused, setIsArrivalFocused] = useState(false);
+  const router = useRouter();
 
   const stationOptions: StationOption[] = [
     {
@@ -207,14 +210,7 @@ const Learn: React.FC = () => {
               </S.InputField>
             </S.InputWrapper>
             </View>
-            <StyledBtn
-              label="학습 시작"
-              onPress={() => {
-                // 학습 시작 로직 추가 예정
-              }}
-              style={{ marginTop: 16, width: '100%' , height: 48 }}
-              isActive={departure !== '' && arrival !== ''}
-            />
+            
           </S.RouteInputContainer>
 
           
@@ -224,7 +220,19 @@ const Learn: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 32, paddingBottom: 120 }}
         >
-          {!isArrivalFocused ? (
+          {departure !== '' && arrival !== '' ? (
+            <View style={{ flex: 1, alignItems:'flex-end'}}>
+              <ThemedText style={{color: Colors.light.primary60}}>예상 소요시간 : {}</ThemedText>
+              <StyledBtn
+                label="학습 시작"
+                onPress={() => {
+                  router.push('/(Quize)/SubjectSelection');
+                }}
+                style={{ width: '100%', height: 48, position: 'absolute', bottom: -360 }}
+                isActive={true}
+              />
+            </View>
+          ) : !isArrivalFocused ? (
             <View>
               <S.SectionTitle>최근 노선</S.SectionTitle>
               <S.RouteList>
@@ -279,7 +287,9 @@ const Learn: React.FC = () => {
               </S.BusStationList>
             </View>
           )}
+
         </S.ScrollContainer>
+        
       </S.LearnContainer>
     </SafeAreaView>
   );
