@@ -26,7 +26,7 @@ const Index = () => {
       type="Bright"
       style={{ flex: 1, justifyContent: "flex-start", alignItems: "center" }}
     >
-      <View style={{ justifyContent: "center", alignItems: "center", gap: 20, marginTop:160 }}>
+      <View style={{ justifyContent: "center", alignItems: "center", gap: 20, marginTop:140 }}>
         <ThemedText type="Subtitle1">내 자투리 시간 투자</ThemedText>
         <View style={{ width: 100, height: 100, backgroundColor: "gray" }} />
       </View>
