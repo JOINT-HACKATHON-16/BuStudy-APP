@@ -1,16 +1,17 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
 interface UgaAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-export const UgaAxios = axios.create({
+export const CustomAxios = axios.create({
   baseURL: process.env.EXPO_PUBLIC_SERVER_URL,
   headers: {
-    Accept: "application/json, text/plain, */*, multipart/form-data",
+    Accept: "application/json, text/plain, */*",
   },
   withCredentials: true,
+  timeout: 0, // 타임아웃 없음 (무제한 대기)
 });
 
 // 토큰 재발급 상태 관리
@@ -28,9 +29,9 @@ const addRefreshSubscriber = (callback: (token: string) => void) => {
   refreshSubscribers.push(callback);
 };
 
-UgaAxios.interceptors.request.use(
+CustomAxios.interceptors.request.use(
   async (config) => {
-    let token = await AsyncStorage.getItem("ACCESS_TOKEN"); // 나중에 const로 변경
+    let token = await AsyncStorage.getItem("ACCESS_TOKEN");
 
     // 개발용 임시 토큰
     if (!token && __DEV__) {
@@ -43,34 +44,72 @@ UgaAxios.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    // ⭐ 핵심 수정: FormData는 Content-Type을 자동 설정하도록 함
     if (config.data instanceof FormData) {
-      config.headers["Content-Type"] = "multipart/form-data";
+      // Content-Type을 삭제하여 axios가 자동으로 boundary를 포함한
+      // multipart/form-data를 설정하도록 함
+      delete config.headers["Content-Type"];
+      console.log("✅ FormData 감지: Content-Type 자동 설정");
     } else {
       config.headers["Content-Type"] = "application/json";
     }
+
+    // 디버깅용 로그
+    console.log("=== Request Interceptor ===");
+    console.log("URL:", config.url);
+    console.log("Method:", config.method);
+    console.log("Content-Type:", config.headers["Content-Type"]);
+    console.log("Data type:", config.data?.constructor?.name);
+
     return config;
   },
   (error) => {
+    console.error("Request Interceptor Error:", error);
     return Promise.reject(error);
   }
 );
 
-UgaAxios.interceptors.response.use(
+CustomAxios.interceptors.response.use(
   (response) => {
+    console.log("=== Response Success ===");
+    console.log("Status:", response.status);
+    console.log("URL:", response.config.url);
     return response;
   },
   async (error: AxiosError) => {
     const originalRequest = error.config as UgaAxiosRequestConfig;
 
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
+    // ⭐ 핵심 수정: 재시도 시에도 FormData는 Content-Type 자동 설정
     if (originalRequest.data instanceof FormData) {
-      originalRequest.headers["Content-Type"] = "multipart/form-data";
+      delete originalRequest.headers["Content-Type"];
+      console.log("✅ 재시도 - FormData Content-Type 자동 설정");
     } else {
       originalRequest.headers["Content-Type"] = "application/json";
     }
-    if (originalRequest && !originalRequest._retry) {
+
+    // 에러 로깅
+    console.error("=== Response Error ===");
+    console.error("Status:", error.response?.status);
+    console.error("URL:", originalRequest.url);
+    console.error("Method:", originalRequest.method);
+    console.error("Error Data:", JSON.stringify(error.response?.data, null, 2));
+
+    // Feign 에러 특별 처리
+    if (error.response?.data?.message?.includes("Feign")) {
+      console.error("🚨 Feign Bad Request 발생!");
+      console.error("게이트웨이 통과, 내부 서비스 호출 실패");
+      console.error("Request Headers:", originalRequest.headers);
+    }
+
+    // 401 에러이고 재시도하지 않은 요청인 경우
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      let refreshToken = await AsyncStorage.getItem("REFRESH_TOKEN"); //나중에 const로 변경
+      let refreshToken = await AsyncStorage.getItem("REFRESH_TOKEN");
 
       // 개발용 임시 리프레시 토큰
       if (!refreshToken && __DEV__) {
@@ -85,29 +124,33 @@ UgaAxios.interceptors.response.use(
           isRefreshing = true;
 
           try {
-            const response = await axios.post(
-              `${process.env.EXPO_PUBLIC_SERVER_URL}/auth/refresh`,
+            const response = await axios.put(
+              `${process.env.EXPO_PUBLIC_SERVER_URL}/auth/re-issue`,
+              null,
               {
-                token: refreshToken,
+                headers: {
+                  "X-Refresh-Token": refreshToken,
+                },
               }
             );
 
             const newAccessToken = response.data.data.accessToken;
             const newRefreshToken = response.data.data.refreshToken;
 
-            AsyncStorage.setItem("ACCESS_TOKEN", newAccessToken);
-            AsyncStorage.setItem("REFRESH_TOKEN", newRefreshToken);
+            await AsyncStorage.setItem("ACCESS_TOKEN", newAccessToken);
+            await AsyncStorage.setItem("REFRESH_TOKEN", newRefreshToken);
 
             // 대기 중인 요청들을 처리
             onRefreshed(newAccessToken);
 
             // 재발급 완료 후 새로운 토큰으로 요청 다시 보내기
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-            return UgaAxios(originalRequest);
+            return CustomAxios(originalRequest);
           } catch (refreshError) {
             // 토큰 재발급 실패 시 처리
-            AsyncStorage.removeItem("ACCESS_TOKEN");
-            AsyncStorage.removeItem("REFRESH_TOKEN");
+            console.error("토큰 재발급 실패:", refreshError);
+            await AsyncStorage.removeItem("ACCESS_TOKEN");
+            await AsyncStorage.removeItem("REFRESH_TOKEN");
             return Promise.reject(refreshError);
           } finally {
             isRefreshing = false;
@@ -118,11 +161,12 @@ UgaAxios.interceptors.response.use(
         return new Promise((resolve) => {
           addRefreshSubscriber((newToken: string) => {
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            resolve(UgaAxios(originalRequest));
+            resolve(CustomAxios(originalRequest));
           });
         });
       } else {
         // refresh token이 없는 경우 에러 처리
+        console.error("Refresh token이 없습니다");
         return Promise.reject(error);
       }
     }
@@ -131,4 +175,4 @@ UgaAxios.interceptors.response.use(
   }
 );
 
-export default UgaAxios;
+export default CustomAxios;

@@ -5,7 +5,7 @@ import { ThemedText } from "@/components/themed-text";
 export const Btn = styled.TouchableOpacity`
   background-color: ${Colors.light.primary60};
   height: 60px;
-  border-radius: 16px;
+  border-radius: 8px;
   justify-content: center;
   align-items: center;
 `;
