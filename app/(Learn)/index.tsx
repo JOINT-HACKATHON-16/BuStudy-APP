@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 import * as S from './style';
+import StyledBtn from '@/components/common/StyledBtn';
 
 interface RouteRecord {
   id: string;
@@ -158,7 +159,8 @@ const Learn: React.FC = () => {
           <S.SectionTitle>오늘의 학습 시작하기</S.SectionTitle>
 
           <S.RouteInputContainer>
-            <S.SwitchIconContainer>
+            < View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }} >
+              <S.SwitchIconContainer>
               <SwitchIcon />
             </S.SwitchIconContainer>
 
@@ -204,7 +206,18 @@ const Learn: React.FC = () => {
                 />
               </S.InputField>
             </S.InputWrapper>
+            </View>
+            <StyledBtn
+              label="학습 시작"
+              onPress={() => {
+                // 학습 시작 로직 추가 예정
+              }}
+              style={{ marginTop: 16, width: '100%' , height: 48 }}
+              isActive={departure !== '' && arrival !== ''}
+            />
           </S.RouteInputContainer>
+
+          
         </S.ContentWrapper>
 
         <S.ScrollContainer 

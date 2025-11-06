@@ -37,7 +37,6 @@ export const RouteInputContainer = styled.View`
   background-color: ${Colors.light.white};
   padding: 16px;
   border-radius: 12px;
-  flex-direction: row;
   gap: 8px;
   align-items: center;
   margin-bottom: 24px;
