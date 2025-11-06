@@ -1,9 +1,11 @@
 import StyledBtn from '@/components/common/StyledBtn';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
+import { useGetBusStops } from '@/hooks/bus/useGetBusStop';
+import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 import * as S from './style';
@@ -15,12 +17,6 @@ interface RouteRecord {
   timeRange: string;
   duration: string;
   date: string;
-}
-
-interface StationOption {
-  id: string;
-  name: string;
-  direction: string;
 }
 
 interface BusStation {
@@ -88,55 +84,61 @@ const Learn: React.FC = () => {
   const [arrival, setArrival] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isArrivalFocused, setIsArrivalFocused] = useState(false);
+  const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
+  const [shouldFetchBusStops, setShouldFetchBusStops] = useState(false);
   const router = useRouter();
 
-  const stationOptions: StationOption[] = [
-    {
-      id: '1',
-      name: '라한 셀렉트, 테디베어박물관',
-      direction: '소호캄, 일성콘도 방향',
-    },
-    {
-      id: '2',
-      name: '수상공연장입구',
-      direction: '켄싱턴리조트, 환화콘도 방향',
-    },
-  ];
+  // 위치 권한 요청 및 현재 위치 가져오기
+  useEffect(() => {
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('권한 필요', '위치 권한이 필요합니다.');
+          return;
+        }
 
-  const busStations: BusStation[] = [
-    {
-      id: '1',
-      name: '경주월드, 캘리포니아비치',
-      time: '4분',
-    },
-    {
-      id: '2',
-      name: '라한 셀렉트, 테디베어박물관',
-      time: '6분',
-    },
-    {
-      id: '3',
-      name: '수상공연장입구',
-      time: '8분',
-    },
-    {
-      id: '4',
-      name: '켄싱턴리조트',
-      time: '10분',
-    },
-    {
-      id: '5',
-      name: '환화콘도',
-      time: '12분',
-    },
-  ];
+        const currentLocation = await Location.getCurrentPositionAsync({});
+        setLocation({
+          lat: currentLocation.coords.latitude,
+          lon: currentLocation.coords.longitude,
+        });
+        console.log('Current location:', {
+          lat: currentLocation.coords.latitude,
+          lon: currentLocation.coords.longitude,
+        });
+      } catch (error) {
+        console.error('Location error:', error);
+        Alert.alert('오류', '위치를 가져올 수 없습니다.');
+      }
+    })();
+  }, []);
+
+  // 버스 정류장 데이터 가져오기 (드롭다운을 열었을 때만)
+  const { data: busStopsData, isLoading: isBusStopsLoading } = useGetBusStops({
+    lat: location?.lat || 0,
+    lon: location?.lon || 0,
+  }, {
+    enabled: shouldFetchBusStops && location !== null, // 드롭다운 열었을 때만 요청
+  });
+
+  console.log('Bus stops data:', busStopsData);
+
+  // 서버에서 받은 버스 정류장 데이터를 UI 형식으로 변환
+  const busStations: BusStation[] = busStopsData 
+    ? busStopsData.map((stop) => ({
+        id: stop.nodeid,
+        name: stop.nodenm,
+        time: '', // 서버에서 시간 정보를 주지 않으면 빈 문자열
+      }))
+    : [];
 
   // 검색어로 버스 정류장 필터링
   const filteredBusStations = busStations.filter(station =>
     station.name.toLowerCase().includes(arrival.toLowerCase())
   );
 
-  const handleSelectStation = (station: StationOption) => {
+  const handleSelectStation = (station: BusStation) => {
     setDeparture(station.name);
     setIsDropdownOpen(false);
   };
@@ -196,7 +198,13 @@ const Learn: React.FC = () => {
               <S.InputField>
                 <S.InputLabel>출발</S.InputLabel>
                 <S.DropdownButton 
-                  onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+                  onPress={() => {
+                    setIsDropdownOpen(!isDropdownOpen);
+                    // 드롭다운을 열 때 API 요청 시작
+                    if (!isDropdownOpen) {
+                      setShouldFetchBusStops(true);
+                    }
+                  }}
                   activeOpacity={1}
                 >
                   <S.DropdownText selected={!!departure}>
@@ -209,16 +217,28 @@ const Learn: React.FC = () => {
 
                 {isDropdownOpen && (
                   <S.DropdownList>
-                    {stationOptions.map((station) => (
-                      <S.DropdownItem 
-                        key={station.id}
-                        onPress={() => handleSelectStation(station)}
-                        activeOpacity={0.7}
-                      >
-                        <S.StationName>{station.name}</S.StationName>
-                        <S.StationDirection>{station.direction}</S.StationDirection>
+                    {isBusStopsLoading ? (
+                      <S.DropdownItem activeOpacity={1}>
+                        <S.StationName>로딩 중...</S.StationName>
                       </S.DropdownItem>
-                    ))}
+                    ) : busStations.length === 0 ? (
+                      <S.DropdownItem activeOpacity={1}>
+                        <S.StationName>주변에 버스 정류장이 없습니다</S.StationName>
+                      </S.DropdownItem>
+                    ) : (
+                      busStations.map((station) => (
+                        <S.DropdownItem 
+                          key={station.id}
+                          onPress={() => handleSelectStation(station)}
+                          activeOpacity={0.7}
+                        >
+                          <S.StationName>{station.name}</S.StationName>
+                          {station.time && (
+                            <S.StationDirection>{station.time} 도착 예정</S.StationDirection>
+                          )}
+                        </S.DropdownItem>
+                      ))
+                    )}
                   </S.DropdownList>
                 )}
               </S.InputField>
