@@ -25,7 +25,7 @@ const RouteCard: React.FC<RouteCardProps> = ({ from, to, time }) => {
             />
           </Svg>
         </S.RouteArrowIcon>
-        <S.RouteLocationText style={{ width: 158 }}>{to}</S.RouteLocationText>
+        <S.RouteLocationText >{to}</S.RouteLocationText>
       </S.RouteContent>
 
       <S.TimestampContainer>

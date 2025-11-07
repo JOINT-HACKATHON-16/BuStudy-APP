@@ -77,11 +77,30 @@ export default function StudyReport() {
   const totalQuestions = parseInt(params.totalQuestions as string) || parsedQuestions.length;
   const accuracy = parseFloat(params.accuracy as string) || 0;
 
+  // 현재 시간 기준으로 시작/종료 시간 계산
+  const now = new Date();
+  const endTime = new Date(now.getTime() + 10 * 60000); // 10분 후
+
+  const formatTime = (date: Date) => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const period = hours >= 12 ? '오후' : '오전';
+    const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+    return `${period} ${displayHours}:${minutes.toString().padStart(2, '0')}`;
+  };
+
+  const formatDate = (date: Date) => {
+    const year = date.getFullYear().toString().slice(2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}.${month}.${day}`;
+  };
+
   const routeInfo = {
     departure: '성북3통굿개말길',
-    arrival: '대덕대학교',
-    date: '25.11.07',
-    time: '오후 8:12 ~ 오후 8:34 (18분)',
+    arrival: '방동저수지',
+    date: formatDate(now),
+    time: `${formatTime(now)} ~ ${formatTime(endTime)} (10분)`,
     problemCount: totalQuestions,
     accuracy: accuracy,
   };

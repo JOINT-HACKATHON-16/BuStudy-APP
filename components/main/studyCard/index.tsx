@@ -54,7 +54,7 @@ const StudyCard: React.FC<StudyCardProps> = ({
 
       <S.BusImage
         source={{
-          uri: "http://localhost:3845/assets/f1fff6793855c1f8a56b5277bfc9c6682e31dc63.png",
+          uri: "https://ik.imagekit.io/yoonha2017/kpass_bus.png?updatedAt=1762475744895",
         }}
         resizeMode="cover"
       />

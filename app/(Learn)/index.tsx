@@ -105,8 +105,8 @@ const Learn: React.FC = () => {
   const arrivalBusStations: BusStation[] = [
     {
       id: 'dummy-1',
-      name: '대덕대학교',
-      time: '5분 후',
+      name: '방동저수지',
+      time: '10분',
     },
   ];
 

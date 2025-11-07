@@ -5,7 +5,8 @@ export const RouteCard = styled.View`
   border-radius: 12px;
   padding: 20px;
   margin-right: 12px;
-  align-items: flex-end;
+  align-items: center;
+  width:200px;
 `;
 
 export const RouteContent = styled.View`
@@ -30,6 +31,7 @@ export const RouteArrowIcon = styled.View`
 export const TimestampContainer = styled.View`
   flex-direction: row;
   align-items: center;
+  align-self:flex-end;
   gap: 6px;
 `;
 
