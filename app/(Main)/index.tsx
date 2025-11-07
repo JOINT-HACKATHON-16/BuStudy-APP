@@ -44,7 +44,7 @@ const Main = () => {
     { id: 1, label: '일', type: 'empty' as const },
     { id: 2, label: '월', type: 'empty' as const },
     { id: 3, label: '화', type: 'empty' as const },
-    { id: 4, label: '수', type: 'today' as const },
+    { id: 4, label: '수', type: 'filled' as const },
     { id: 5, label: '목', type: 'filled' as const },
     { id: 6, label: '금', type: 'filled' as const },
     { id: 7, label: '토', type: 'filled' as const },
