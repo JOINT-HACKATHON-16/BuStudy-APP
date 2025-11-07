@@ -36,11 +36,11 @@ const postSubject = async (
     type: type,
   };
 
-  // 서버가 'file' 필드를 기대함
-  formData.append("file", fileObject);
+  // ⭐ 핵심: Swagger에서 요구하는 필드명은 'image'
+  formData.append("image", fileObject);
 
   console.log("=== FormData 전송 정보 ===");
-  console.log("필드명: file");
+  console.log("필드명: image");
   console.log("파일 정보:", fileObject);
 
   // FormData의 실제 내용 확인 (React Native)

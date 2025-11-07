@@ -55,7 +55,7 @@ const postLearningStart = async (
   try {
     // POST 요청으로 Request Body를 전송합니다.
     const response = await CustomAxios.post<LearningStartResponse>(endpoint, {
-      estimatedTime: 35,
+      estimatedTime: 10,
     });
 
     console.log("학습 시작 API 응답:", response.data);

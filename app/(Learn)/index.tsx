@@ -83,7 +83,7 @@ const Learn: React.FC = () => {
   const [arrival, setArrival] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isArrivalFocused, setIsArrivalFocused] = useState(false);
-  const [estimatedTime] = useState<number>(35); // 더미 예상 시간
+  const [estimatedTime] = useState<number>(10); // 더미 예상 시간
   const router = useRouter();
 
   // API로 버스 정류장 데이터 가져오기
@@ -129,30 +129,30 @@ const Learn: React.FC = () => {
       duration: '18분',
       date: '어제',
     },
-    {
-      id: '2',
-      departure: '라한 셀렉트, 테디베어박물관',
-      arrival: '경주월드, 캘리포니아비치',
-      timeRange: '오후 8:12 ~ 오후 8:34',
-      duration: '18분',
-      date: '3일전',
-    },
-    {
-      id: '3',
-      departure: '라한 셀렉트, 테디베어박물관',
-      arrival: '경주월드, 캘리포니아비치',
-      timeRange: '오후 8:12 ~ 오후 8:34',
-      duration: '18분',
-      date: '3일전',
-    },
-    {
-      id: '4',
-      departure: '라한 셀렉트, 테디베어박물관',
-      arrival: '경주월드, 캘리포니아비치',
-      timeRange: '오후 8:12 ~ 오후 8:34',
-      duration: '18분',
-      date: '3일전',
-    },
+    // {
+    //   id: '2',
+    //   departure: '라한 셀렉트, 테디베어박물관',
+    //   arrival: '경주월드, 캘리포니아비치',
+    //   timeRange: '오후 8:12 ~ 오후 8:34',
+    //   duration: '18분',
+    //   date: '3일전',
+    // },
+    // {
+    //   id: '3',
+    //   departure: '라한 셀렉트, 테디베어박물관',
+    //   arrival: '경주월드, 캘리포니아비치',
+    //   timeRange: '오후 8:12 ~ 오후 8:34',
+    //   duration: '18분',
+    //   date: '3일전',
+    // },
+    // {
+    //   id: '4',
+    //   departure: '라한 셀렉트, 테디베어박물관',
+    //   arrival: '경주월드, 캘리포니아비치',
+    //   timeRange: '오후 8:12 ~ 오후 8:34',
+    //   duration: '18분',
+    //   date: '3일전',
+    // },
   ];
 
   return (

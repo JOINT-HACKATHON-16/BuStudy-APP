@@ -113,7 +113,7 @@ export default function SubjectRegister() {
     if (cameraRef.current) {
       try {
         const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.2, // 이미지 품질을 20%로 더 낮춤 (파일 크기 최소화)
+          quality: 0.3, // 이미지 품질 30%로 설정 (파일 크기 감소)
           exif: false, // EXIF 데이터 제거
         });
         
@@ -144,7 +144,7 @@ export default function SubjectRegister() {
         mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.2, // 이미지 품질을 20%로 더 낮춤 (파일 크기 최소화)
+        quality: 0.3, // 이미지 품질 30%로 설정 (파일 크기 감소)
         exif: false, // EXIF 데이터 제거
       });
 
